@@ -9,13 +9,13 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12161f;--card:#1a2030;--ink:#e6e9f2;--mut:#98a1b8;--line:#2b3348;--ok:#3dc9b4;--bad:#ff6b8b;--leg:#a396ff}}
 *{box-sizing:border-box}
 html{scroll-padding-top:12px;-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--font)}
-main{max-width:860px;margin:0 auto;padding:32px 20px 64px}
-h1{font-size:2rem;line-height:1.15;margin:0 0 6px}
+body{margin:0;background:var(--bg);color:var(--ink);font:clamp(16px,.9rem + .25vw,18px)/1.55 var(--font)}
+main{max-width:1160px;margin:0 auto;padding:clamp(20px,4vw,40px) clamp(12px,3vw,28px) 64px}
+h1{font-size:clamp(1.6rem,1.2rem + 1.6vw,2.4rem);line-height:1.15;margin:0 0 6px}
 h2{font-size:1.3rem;margin:0 0 4px}
 p{margin:.4em 0;max-width:68ch}
 .lede{color:var(--mut)}
-section{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:4px;padding:20px;margin:28px 0}
+section{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:4px;padding:clamp(14px,2.4vw,26px);margin:clamp(18px,3vw,30px) 0}
 section.geo{border-left-color:var(--leg)}
 .note{color:var(--mut);font-size:.9rem}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 16px;align-items:end;margin:12px 0}
@@ -25,6 +25,8 @@ input[type=number]{width:100%;min-width:0;font-family:var(--mono)}
 input[type=range]{padding:0;width:100%;min-height:32px}
 button{cursor:pointer}
 :is(input,select,button):focus-visible{outline:2px solid var(--leg);outline-offset:2px}
+.cols{display:flex;flex-wrap:wrap;gap:12px clamp(20px,4vw,48px);align-items:flex-start}
+.col{flex:1 1 340px;min-width:0}.col.wide{flex:2 1 480px}
 .kv>div{display:flex;flex-wrap:wrap;gap:2px 14px;padding:6px 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:.88rem}
 .kv b{font-weight:600;color:var(--mut);min-width:5.5em}
 .kv span{overflow-wrap:anywhere}
@@ -33,10 +35,10 @@ button{cursor:pointer}
 .eqr{display:grid;grid-template-columns:1fr auto auto;gap:2px 16px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.9rem}
 .eqr .num{font-family:var(--mono)}
 .ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}
-canvas{width:100%;height:320px;display:block;margin-top:8px}
+canvas{width:100%;height:clamp(260px,34vw,440px);display:block;margin-top:8px}
 .key{display:flex;gap:18px;flex-wrap:wrap;font-size:.88rem}
 .key i{display:inline-block;width:22px;height:0;border-top:3px solid;vertical-align:middle;margin-right:6px}
-@media (max-width:560px){body{font-size:16px}main{padding:20px 12px 48px}section{padding:14px}h1{font-size:1.6rem}canvas{height:260px}.eqr{grid-template-columns:1fr auto}.eqr .nm{grid-column:1/-1}.kv>div{flex-direction:column;gap:0}}
+@media (max-width:560px){body{font-size:16px}main{padding:20px 12px 48px}section{padding:14px}h1{font-size:1.6rem}.eqr{grid-template-columns:1fr auto}.eqr .nm{grid-column:1/-1}.kv>div{flex-direction:column;gap:0}}
 </style>
 </head>
 <body>
@@ -47,38 +49,48 @@ canvas{width:100%;height:320px;display:block;margin-top:8px}
 <section id="algebra">
 <h2>Hamilton product</h2>
 <p class="note">Components are written (r, i, j, k). Order matters: a⊗b and b⊗a differ.</p>
-<div id="qin"></div>
-<div class="kv" id="qout"></div>
-<p class="note" style="margin-top:12px">Defining relations, computed with the same function:</p>
-<div class="kv" id="rel"></div>
+<div class="cols">
+<div class="col"><div id="qin"></div><div class="kv" id="qout"></div></div>
+<div class="col"><p class="note" style="margin-top:0">Defining relations, computed with the same function:</p><div class="kv" id="rel"></div></div>
+</div>
 </section>
 
 <section id="equiv">
 <h2>Equivariance under u⊗x</h2>
-<p>A layer that multiplies the input by a weight on the right, x⊗W, commutes with multiplying every input on the left by a unit quaternion u. A norm-based activation keeps that property. A componentwise ReLU breaks it. The numbers below are ‖f(u⊗x) − u⊗f(x)‖ on random inputs.</p>
+<p>A layer that multiplies the input by a weight on the right, x⊗W, commutes with multiplying every input on the left by a unit quaternion u. A norm-based activation keeps that property. A componentwise ReLU breaks it. The numbers are ‖f(u⊗x) − u⊗f(x)‖ on random inputs.</p>
+<div class="cols">
+<div class="col">
 <div class="row">
 <label>Layer computes<select id="conv"><option value="R">x ⊗ W</option><option value="L">W ⊗ x</option></select></label>
+<button id="reroll">New random weights</button>
 <label>u r<input type="range" id="u0" min="-1" max="1" step="0.01" value="0.7"></label>
 <label>u i<input type="range" id="u1" min="-1" max="1" step="0.01" value="0.3"></label>
 <label>u j<input type="range" id="u2" min="-1" max="1" step="0.01" value="-0.5"></label>
 <label>u k<input type="range" id="u3" min="-1" max="1" step="0.01" value="0.4"></label>
-<button id="reroll">New random weights</button>
 </div>
 <p class="note" id="uinfo"></p>
-<div id="eq"></div>
+</div>
+<div class="col"><div id="eq"></div></div>
+</div>
 </section>
 
 <section id="ma" class="geo">
 <h2>Monge-Ampère on ℂ²</h2>
 <p>For a Kähler potential that depends only on t = r² = |z₁|² + |z₂|², the complex Monge-Ampère determinant is K′(K′ + tK″). A Ricci-flat metric needs it to be constant. The legacy engine instead took a 1×1 Hessian in r, which is just φ″(r), and never compared it to anything.</p>
+<div class="cols">
+<div class="col">
 <div class="row">
 <label>Potential<select id="man"><option value="eh">Eguchi-Hanson</option><option value="tn">Taub-NUT (as in the legacy file)</option></select></label>
 <label><span id="plab">a = 1.00</span><input type="range" id="par" min="0.2" max="2" step="0.05" value="1"></label>
 </div>
-<div class="key"><span><i style="border-color:var(--ok)"></i>correct determinant</span><span><i style="border-color:var(--leg);border-top-style:dashed"></i>legacy φ″(r)</span></div>
-<canvas id="cv" role="img" aria-label="Plot of the correct Monge-Ampère determinant and the legacy second derivative against r"></canvas>
 <p id="verdict"></p>
 <p class="note">Eguchi-Hanson is computed from its closed-form K′(t). The Taub-NUT potential is the one in the legacy file; whether a single radial potential can describe Taub-NUT at all is something to check against a reference.</p>
+</div>
+<div class="col wide">
+<div class="key"><span><i style="border-color:var(--ok)"></i>correct determinant</span><span><i style="border-color:var(--leg);border-top-style:dashed"></i>legacy φ″(r)</span></div>
+<canvas id="cv" role="img" aria-label="Plot of the correct Monge-Ampère determinant and the legacy second derivative against r"></canvas>
+</div>
+</div>
 </section>
 </main>
 
