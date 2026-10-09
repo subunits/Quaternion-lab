@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quaternion lab</title>
+<style>
+:root{--bg:#f2f4f8;--card:#fff;--ink:#1b2236;--mut:#5d6679;--line:#d5dae5;--ok:#0e7c70;--bad:#c8244f;--leg:#6a56d6;--font:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12161f;--card:#1a2030;--ink:#e6e9f2;--mut:#98a1b8;--line:#2b3348;--ok:#3dc9b4;--bad:#ff6b8b;--leg:#a396ff}}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--font)}
+main{max-width:860px;margin:0 auto;padding:32px 20px 64px}
+h1{font-size:2rem;line-height:1.15;margin:0 0 6px}
+h2{font-size:1.3rem;margin:0 0 4px}
+p{margin:.4em 0;max-width:68ch}
+.lede{color:var(--mut)}
+section{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:4px;padding:20px;margin:28px 0}
+section.geo{border-left-color:var(--leg)}
+.note{color:var(--mut);font-size:.9rem}
+.row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin:12px 0}
+label{display:flex;flex-direction:column;font-size:.85rem;color:var(--mut);gap:3px}
+input,select,button{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:5px 8px}
+input[type=number]{width:5.5em;font-family:var(--mono)}
+input[type=range]{padding:0;width:150px}
+button{cursor:pointer}
+:is(input,select,button):focus-visible{outline:2px solid var(--leg);outline-offset:2px}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:.88rem;display:block;overflow-x:auto}
+td,th{padding:5px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-weight:600;color:var(--mut)}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}
+canvas{width:100%;height:320px;display:block;margin-top:8px}
+.key{display:flex;gap:18px;flex-wrap:wrap;font-size:.88rem}
+.key i{display:inline-block;width:22px;height:0;border-top:3px solid;vertical-align:middle;margin-right:6px}
+</style>
+</head>
+<body>
+<main>
+<h1>Quaternion lab</h1>
+<p class="lede">Three live checks, written from scratch and independent of the legacy repos: the quaternion algebra, the one symmetry quaternion layers really have, and what the Monge-Ampère test says about Eguchi-Hanson and Taub-NUT.</p>
+
+<section id="algebra">
+<h2>Hamilton product</h2>
+<p class="note">Components are written (r, i, j, k). Order matters: a⊗b and b⊗a differ.</p>
+<div class="row" id="qin"></div>
+<table id="qout"></table>
+<p class="note" style="margin-top:12px">Defining relations, computed with the same function:</p>
+<table id="rel"></table>
+</section>
+
+<section id="equiv">
+<h2>Equivariance under u⊗x</h2>
+<p>A layer that multiplies the input by a weight on the right, x⊗W, commutes with multiplying every input on the left by a unit quaternion u. A norm-based activation keeps that property. A componentwise ReLU breaks it. The numbers below are ‖f(u⊗x) − u⊗f(x)‖ on random inputs.</p>
+<div class="row">
+<label>Layer computes<select id="conv"><option value="R">x ⊗ W</option><option value="L">W ⊗ x</option></select></label>
+<label>u r<input type="range" id="u0" min="-1" max="1" step="0.01" value="0.7"></label>
+<label>u i<input type="range" id="u1" min="-1" max="1" step="0.01" value="0.3"></label>
+<label>u j<input type="range" id="u2" min="-1" max="1" step="0.01" value="-0.5"></label>
+<label>u k<input type="range" id="u3" min="-1" max="1" step="0.01" value="0.4"></label>
+<button id="reroll">New random weights</button>
+</div>
+<p class="note" id="uinfo"></p>
+<table id="eq"></table>
+</section>
+
+<section id="ma" class="geo">
+<h2>Monge-Ampère on ℂ²</h2>
+<p>For a Kähler potential that depends only on t = r² = |z₁|² + |z₂|², the complex Monge-Ampère determinant is K′(K′ + tK″). A Ricci-flat metric needs it to be constant. The legacy engine instead took a 1×1 Hessian in r, which is just φ″(r), and never compared it to anything.</p>
+<div class="row">
+<label>Potential<select id="man"><option value="eh">Eguchi-Hanson</option><option value="tn">Taub-NUT (as in the legacy file)</option></select></label>
+<label>Parameter <span id="plab">a</span><input type="range" id="par" min="0.2" max="2" step="0.05" value="1"></label>
+<span class="note" id="parv"></span>
+</div>
+<div class="key"><span><i style="border-color:var(--ok)"></i>correct determinant</span><span><i style="border-color:var(--leg);border-top-style:dashed"></i>legacy φ″(r)</span></div>
+<canvas id="cv" role="img" aria-label="Plot of the correct Monge-Ampère determinant and the legacy second derivative against r"></canvas>
+<p id="verdict"></p>
+<p class="note">Eguchi-Hanson is computed from its closed-form K′(t). The Taub-NUT potential is the one in the legacy file; whether a single radial potential can describe Taub-NUT at all is something to check against a reference.</p>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const H=(a,b)=>[a[0]*b[0]-a[1]*b[1]-a[2]*b[2]-a[3]*b[3],
+ a[0]*b[1]+a[1]*b[0]+a[2]*b[3]-a[3]*b[2],
+ a[0]*b[2]-a[1]*b[3]+a[2]*b[0]+a[3]*b[1],
+ a[0]*b[3]+a[1]*b[2]-a[2]*b[1]+a[3]*b[0]];
+const f3=v=>(Math.abs(v)<5e-13?0:v).toFixed(3);
+const fq=q=>"("+q.map(f3).join(", ")+")";
+const nrm=q=>Math.hypot(...q);
+
+/* ---------- Hamilton product ---------- */
+const qa=[1,2,-1,.5], qb=[.5,-1,3,2];
+$("qin").innerHTML=["a","b"].map((n,s)=>"<span>"+n+" = </span>"+[0,1,2,3].map(c=>
+ `<label>${"rijk"[c]}<input type="number" step="0.1" data-q="${s}" data-c="${c}" value="${(s?qb:qa)[c]}"></label>`).join("")).join('<span style="flex-basis:100%"></span>');
+function drawAlgebra(){
+ const q=[[0,0,0,0],[0,0,0,0]];
+ document.querySelectorAll("[data-q]").forEach(e=>q[+e.dataset.q][+e.dataset.c]=parseFloat(e.value)||0);
+ const ab=H(q[0],q[1]), ba=H(q[1],q[0]), d=ab.map((v,i)=>v-ba[i]);
+ $("qout").innerHTML=`<tr><th>a⊗b</th><td>${fq(ab)}</td></tr><tr><th>b⊗a</th><td>${fq(ba)}</td></tr><tr><th>difference</th><td>${fq(d)}</td></tr><tr><th>|a⊗b| vs |a||b|</th><td>${nrm(ab).toFixed(6)} vs ${(nrm(q[0])*nrm(q[1])).toFixed(6)}</td></tr>`;
+}
+document.querySelectorAll("[data-q]").forEach(e=>e.addEventListener("input",drawAlgebra));
+const I=[0,1,0,0],J=[0,0,1,0],K=[0,0,0,1];
+const rel=[["i⊗i",H(I,I)],["j⊗j",H(J,J)],["k⊗k",H(K,K)],["i⊗j⊗k",H(H(I,J),K)],["i⊗j",H(I,J)],["j⊗k",H(J,K)],["k⊗i",H(K,I)],["j⊗i",H(J,I)]];
+$("rel").innerHTML=rel.map(([n,v])=>`<tr><th>${n}</th><td>${fq(v)}</td></tr>`).join("");
+drawAlgebra();
+
+/* ---------- Equivariance ---------- */
+let seed=7;
+function rng(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}
+const gauss=()=>Math.sqrt(-2*Math.log(rng()+1e-12))*Math.cos(6.2831853*rng());
+const S=3,O=3,B=-0.2;
+let W,X;
+function reroll(){seed=(Math.random()*1e9)|0;
+ W=[...Array(O)].map(()=>[...Array(S)].map(()=>[0,0,0,0].map(gauss).map(v=>v*.6)));
+ X=[...Array(S)].map(()=>[0,0,0,0].map(gauss));drawEq()}
+const layer=(Xs,conv)=>W.map(row=>row.reduce((acc,w,s)=>{const p=conv==="R"?H(Xs[s],w):H(w,Xs[s]);return acc.map((v,i)=>v+p[i])},[0,0,0,0]));
+const modrelu=q=>{const n=nrm(q);const g=Math.max(n+B,0)/(n||1);return q.map(v=>v*g)};
+const srelu=q=>q.map(v=>Math.max(v,0));
+const err=(A,Bm)=>Math.sqrt(A.reduce((s,q,i)=>s+q.reduce((t,v,c)=>t+(v-Bm[i][c])**2,0),0));
+function drawEq(){
+ let u=[0,1,2,3].map(i=>parseFloat($("u"+i).value));let n=nrm(u);
+ if(n<1e-6){u=[1,0,0,0];n=1}u=u.map(v=>v/n);
+ $("uinfo").textContent="Unit quaternion u = "+fq(u);
+ const conv=$("conv").value, uX=X.map(x=>H(u,x));
+ const tests=[["linear layer only",x=>x],["linear + modReLU (norm-based)",x=>x.map(modrelu)],["linear + split ReLU (per component)",x=>x.map(srelu)]];
+ $("eq").innerHTML="<tr><th>Network</th><th>error</th><th>result</th></tr>"+tests.map(([nm,act])=>{
+  const lhs=act(layer(uX,conv)), rhs=act(layer(X,conv)).map(y=>H(u,y)), e=err(lhs,rhs), ok=e<1e-9;
+  return `<tr><td>${nm}</td><td>${e.toExponential(2)}</td><td class="${ok?"ok":"bad"}">${ok?"equivariant":"not equivariant"}</td></tr>`}).join("");
+}
+["u0","u1","u2","u3","conv"].forEach(id=>$(id).addEventListener("input",drawEq));
+$("reroll").addEventListener("click",reroll);
+
+/* ---------- Monge-Ampere ---------- */
+function Kt(kind,p,t){
+ if(kind==="eh"){const a2=p*p,s=Math.sqrt(a2*a2+t*t);return(a2*a2+a2*s+t*t)/(t*(a2+s))}
+ return p/t+1/(4*p);
+}
+function dets(kind,p,r){
+ const t=r*r,h=t*1e-5,k=Kt(kind,p,t),kk=(Kt(kind,p,t+h)-Kt(kind,p,t-h))/(2*h);
+ return{proper:k*(k+t*kk),legacy:2*k+4*t*kk};
+}
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+function drawMA(){
+ const kind=$("man").value,p=parseFloat($("par").value);
+ $("plab").textContent=kind==="eh"?"a":"m";$("parv").textContent=(kind==="eh"?"a = ":"m = ")+p.toFixed(2);
+ const cv=$("cv"),dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
+ cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext("2d");g.scale(dpr,dpr);g.clearRect(0,0,w,h);
+ const L=44,R=10,T=10,Bt=26,r0=0.1,r1=4,y0=-4,y1=8,N=300;
+ const X_=r=>L+(r-r0)/(r1-r0)*(w-L-R), Y_=v=>T+(y1-Math.max(y0,Math.min(y1,v)))/(y1-y0)*(h-T-Bt);
+ g.font="12px "+css("--mono");g.fillStyle=css("--mut");g.strokeStyle=css("--line");g.lineWidth=1;
+ for(let v=y0;v<=y1;v+=2){g.beginPath();g.moveTo(L,Y_(v));g.lineTo(w-R,Y_(v));g.stroke();g.fillText(v,8,Y_(v)+4)}
+ for(let r=1;r<=4;r++)g.fillText("r="+r,X_(r)-12,h-8);
+ const pts=[...Array(N+1)].map((_,i)=>{const r=r0+(r1-r0)*i/N;return[r,dets(kind,p,r)]});
+ const line=(key,col,dash)=>{g.beginPath();g.setLineDash(dash);g.strokeStyle=col;g.lineWidth=2.5;
+  pts.forEach(([r,d],i)=>i?g.lineTo(X_(r),Y_(d[key])):g.moveTo(X_(r),Y_(d[key])));g.stroke();g.setLineDash([])};
+ line("legacy",css("--leg"),[6,5]);line("proper",css("--ok"),[]);
+ const pr=pts.map(([r,d])=>d.proper),lo=Math.min(...pr),hi=Math.max(...pr),flat=hi-lo<1e-6;
+ $("verdict").innerHTML=flat?`<span class="ok">Constant:</span> the correct determinant is ${pr[0].toFixed(6)} for every r from ${r0} to ${r1}, so this potential satisfies Monge-Ampère.`
+  :`<span class="bad">Not constant:</span> the correct determinant ranges from ${lo.toFixed(3)} to ${hi.toFixed(3)} over r from ${r0} to ${r1}, so this potential does not satisfy Monge-Ampère with a flat volume form.`;
+}
+["man","par"].forEach(id=>$(id).addEventListener("input",drawMA));
+$("man").addEventListener("change",()=>{$("par").value=1;drawMA()});
+addEventListener("resize",drawMA);
+matchMedia("(prefers-color-scheme:dark)").addEventListener("change",drawMA);
+reroll();drawMA();
+</script>
+</body>
+</html>
