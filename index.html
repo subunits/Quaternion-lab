@@ -8,7 +8,7 @@
 :root{--bg:#f2f4f8;--card:#fff;--ink:#1b2236;--mut:#5d6679;--line:#d5dae5;--ok:#0e7c70;--bad:#c8244f;--leg:#6a56d6;--font:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12161f;--card:#1a2030;--ink:#e6e9f2;--mut:#98a1b8;--line:#2b3348;--ok:#3dc9b4;--bad:#ff6b8b;--leg:#a396ff}}
 *{box-sizing:border-box}
-html{scroll-padding-top:12px}
+html{scroll-padding-top:12px;-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--font)}
 main{max-width:860px;margin:0 auto;padding:32px 20px 64px}
 h1{font-size:2rem;line-height:1.15;margin:0 0 6px}
@@ -18,20 +18,25 @@ p{margin:.4em 0;max-width:68ch}
 section{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:4px;padding:20px;margin:28px 0}
 section.geo{border-left-color:var(--leg)}
 .note{color:var(--mut);font-size:.9rem}
-.row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin:12px 0}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 16px;align-items:end;margin:12px 0}
 label{display:flex;flex-direction:column;font-size:.85rem;color:var(--mut);gap:3px}
-input,select,button{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:5px 8px}
-input[type=number]{width:5.5em;font-family:var(--mono)}
-input[type=range]{padding:0;width:150px}
+input,select,button{font:inherit;font-size:16px;min-height:40px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:5px 8px}
+input[type=number]{width:100%;min-width:0;font-family:var(--mono)}
+input[type=range]{padding:0;width:100%;min-height:32px}
 button{cursor:pointer}
 :is(input,select,button):focus-visible{outline:2px solid var(--leg);outline-offset:2px}
-table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:.88rem;display:block;overflow-x:auto}
-td,th{padding:5px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
-th{font-weight:600;color:var(--mut)}
+.kv>div{display:flex;flex-wrap:wrap;gap:2px 14px;padding:6px 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:.88rem}
+.kv b{font-weight:600;color:var(--mut);min-width:5.5em}
+.kv span{overflow-wrap:anywhere}
+.qrow{display:grid;grid-template-columns:1.5em repeat(4,minmax(0,1fr));gap:8px;align-items:end;margin:8px 0}
+.qrow b{padding-bottom:9px;color:var(--mut)}
+.eqr{display:grid;grid-template-columns:1fr auto auto;gap:2px 16px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.eqr .num{font-family:var(--mono)}
 .ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}
 canvas{width:100%;height:320px;display:block;margin-top:8px}
 .key{display:flex;gap:18px;flex-wrap:wrap;font-size:.88rem}
 .key i{display:inline-block;width:22px;height:0;border-top:3px solid;vertical-align:middle;margin-right:6px}
+@media (max-width:560px){body{font-size:16px}main{padding:20px 12px 48px}section{padding:14px}h1{font-size:1.6rem}canvas{height:260px}.eqr{grid-template-columns:1fr auto}.eqr .nm{grid-column:1/-1}.kv>div{flex-direction:column;gap:0}}
 </style>
 </head>
 <body>
@@ -42,10 +47,10 @@ canvas{width:100%;height:320px;display:block;margin-top:8px}
 <section id="algebra">
 <h2>Hamilton product</h2>
 <p class="note">Components are written (r, i, j, k). Order matters: a⊗b and b⊗a differ.</p>
-<div class="row" id="qin"></div>
-<table id="qout"></table>
+<div id="qin"></div>
+<div class="kv" id="qout"></div>
 <p class="note" style="margin-top:12px">Defining relations, computed with the same function:</p>
-<table id="rel"></table>
+<div class="kv" id="rel"></div>
 </section>
 
 <section id="equiv">
@@ -60,7 +65,7 @@ canvas{width:100%;height:320px;display:block;margin-top:8px}
 <button id="reroll">New random weights</button>
 </div>
 <p class="note" id="uinfo"></p>
-<table id="eq"></table>
+<div id="eq"></div>
 </section>
 
 <section id="ma" class="geo">
@@ -68,8 +73,7 @@ canvas{width:100%;height:320px;display:block;margin-top:8px}
 <p>For a Kähler potential that depends only on t = r² = |z₁|² + |z₂|², the complex Monge-Ampère determinant is K′(K′ + tK″). A Ricci-flat metric needs it to be constant. The legacy engine instead took a 1×1 Hessian in r, which is just φ″(r), and never compared it to anything.</p>
 <div class="row">
 <label>Potential<select id="man"><option value="eh">Eguchi-Hanson</option><option value="tn">Taub-NUT (as in the legacy file)</option></select></label>
-<label>Parameter <span id="plab">a</span><input type="range" id="par" min="0.2" max="2" step="0.05" value="1"></label>
-<span class="note" id="parv"></span>
+<label><span id="plab">a = 1.00</span><input type="range" id="par" min="0.2" max="2" step="0.05" value="1"></label>
 </div>
 <div class="key"><span><i style="border-color:var(--ok)"></i>correct determinant</span><span><i style="border-color:var(--leg);border-top-style:dashed"></i>legacy φ″(r)</span></div>
 <canvas id="cv" role="img" aria-label="Plot of the correct Monge-Ampère determinant and the legacy second derivative against r"></canvas>
@@ -90,18 +94,17 @@ const nrm=q=>Math.hypot(...q);
 
 /* ---------- Hamilton product ---------- */
 const qa=[1,2,-1,.5], qb=[.5,-1,3,2];
-$("qin").innerHTML=["a","b"].map((n,s)=>"<span>"+n+" = </span>"+[0,1,2,3].map(c=>
- `<label>${"rijk"[c]}<input type="number" step="0.1" data-q="${s}" data-c="${c}" value="${(s?qb:qa)[c]}"></label>`).join("")).join('<span style="flex-basis:100%"></span>');
+$("qin").innerHTML=["a","b"].map((n,s)=>`<div class="qrow"><b>${n}</b>`+[0,1,2,3].map(c=>`<label>${"rijk"[c]}<input type="number" step="0.1" data-q="${s}" data-c="${c}" value="${(s?qb:qa)[c]}"></label>`).join("")+"</div>").join("");
 function drawAlgebra(){
  const q=[[0,0,0,0],[0,0,0,0]];
  document.querySelectorAll("[data-q]").forEach(e=>q[+e.dataset.q][+e.dataset.c]=parseFloat(e.value)||0);
  const ab=H(q[0],q[1]), ba=H(q[1],q[0]), d=ab.map((v,i)=>v-ba[i]);
- $("qout").innerHTML=`<tr><th>a⊗b</th><td>${fq(ab)}</td></tr><tr><th>b⊗a</th><td>${fq(ba)}</td></tr><tr><th>difference</th><td>${fq(d)}</td></tr><tr><th>|a⊗b| vs |a||b|</th><td>${nrm(ab).toFixed(6)} vs ${(nrm(q[0])*nrm(q[1])).toFixed(6)}</td></tr>`;
+ $("qout").innerHTML=`<div><b>a⊗b</b><span>${fq(ab)}</span></div><div><b>b⊗a</b><span>${fq(ba)}</span></div><div><b>difference</b><span>${fq(d)}</span></div><div><b>|a⊗b| vs |a||b|</b><span>${nrm(ab).toFixed(6)} vs ${(nrm(q[0])*nrm(q[1])).toFixed(6)}</span></div>`;
 }
 document.querySelectorAll("[data-q]").forEach(e=>e.addEventListener("input",drawAlgebra));
 const I=[0,1,0,0],J=[0,0,1,0],K=[0,0,0,1];
 const rel=[["i⊗i",H(I,I)],["j⊗j",H(J,J)],["k⊗k",H(K,K)],["i⊗j⊗k",H(H(I,J),K)],["i⊗j",H(I,J)],["j⊗k",H(J,K)],["k⊗i",H(K,I)],["j⊗i",H(J,I)]];
-$("rel").innerHTML=rel.map(([n,v])=>`<tr><th>${n}</th><td>${fq(v)}</td></tr>`).join("");
+$("rel").innerHTML=rel.map(([n,v])=>`<div><b>${n}</b><span>${fq(v)}</span></div>`).join("");
 drawAlgebra();
 
 /* ---------- Equivariance ---------- */
@@ -123,9 +126,9 @@ function drawEq(){
  $("uinfo").textContent="Unit quaternion u = "+fq(u);
  const conv=$("conv").value, uX=X.map(x=>H(u,x));
  const tests=[["linear layer only",x=>x],["linear + modReLU (norm-based)",x=>x.map(modrelu)],["linear + split ReLU (per component)",x=>x.map(srelu)]];
- $("eq").innerHTML="<tr><th>Network</th><th>error</th><th>result</th></tr>"+tests.map(([nm,act])=>{
+ $("eq").innerHTML=tests.map(([nm,act])=>{
   const lhs=act(layer(uX,conv)), rhs=act(layer(X,conv)).map(y=>H(u,y)), e=err(lhs,rhs), ok=e<1e-9;
-  return `<tr><td>${nm}</td><td>${e.toExponential(2)}</td><td class="${ok?"ok":"bad"}">${ok?"equivariant":"not equivariant"}</td></tr>`}).join("");
+  return `<div class="eqr"><span class="nm">${nm}</span><span class="num">${e.toExponential(2)}</span><span class="${ok?"ok":"bad"}">${ok?"equivariant":"not equivariant"}</span></div>`}).join("");
 }
 ["u0","u1","u2","u3","conv"].forEach(id=>$(id).addEventListener("input",drawEq));
 $("reroll").addEventListener("click",reroll);
@@ -142,7 +145,7 @@ function dets(kind,p,r){
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
 function drawMA(){
  const kind=$("man").value,p=parseFloat($("par").value);
- $("plab").textContent=kind==="eh"?"a":"m";$("parv").textContent=(kind==="eh"?"a = ":"m = ")+p.toFixed(2);
+ $("plab").textContent=(kind==="eh"?"a":"m")+" = "+p.toFixed(2);
  const cv=$("cv"),dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
  cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext("2d");g.scale(dpr,dpr);g.clearRect(0,0,w,h);
  const L=44,R=10,T=10,Bt=26,r0=0.1,r1=4,y0=-4,y1=8,N=300;
@@ -155,7 +158,7 @@ function drawMA(){
   pts.forEach(([r,d],i)=>i?g.lineTo(X_(r),Y_(d[key])):g.moveTo(X_(r),Y_(d[key])));g.stroke();g.setLineDash([])};
  line("legacy",css("--leg"),[6,5]);line("proper",css("--ok"),[]);
  const pr=pts.map(([r,d])=>d.proper),lo=Math.min(...pr),hi=Math.max(...pr),flat=hi-lo<1e-6;
- $("verdict").innerHTML=flat?`<span class="ok">Constant:</span> the correct determinant is ${pr[0].toFixed(6)} for every r from ${r0} to ${r1}, so this potential satisfies Monge-Ampère.`
+ $("verdict").innerHTML=flat?`<span class="ok">Constant:</span> the correct determinant is ${pr[0].toFixed(4)} for every r from ${r0} to ${r1}, so this potential satisfies Monge-Ampère.`
   :`<span class="bad">Not constant:</span> the correct determinant ranges from ${lo.toFixed(3)} to ${hi.toFixed(3)} over r from ${r0} to ${r1}, so this potential does not satisfy Monge-Ampère with a flat volume form.`;
 }
 ["man","par"].forEach(id=>$(id).addEventListener("input",drawMA));
