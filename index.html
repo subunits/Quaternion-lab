@@ -5,154 +5,126 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quaternion lab</title>
 <style>
-:root{--bg:#f2f4f8;--card:#fff;--ink:#1b2236;--mut:#5d6679;--line:#d5dae5;--ok:#0e7c70;--bad:#c8244f;--leg:#6a56d6;--ci:hsl(20 75% 46%);--cj:hsl(140 60% 34%);--ck:hsl(230 65% 54%);--blu:#2b59c3;--gold:#96590a;--on:#fff;--sh:0 1px 2px rgba(20,30,60,.06),0 10px 28px -14px rgba(20,30,60,.16);--font:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12161f;--card:#1a2030;--ink:#e6e9f2;--mut:#98a1b8;--line:#2b3348;--ok:#3dc9b4;--bad:#ff6b8b;--leg:#a396ff;--ci:hsl(20 85% 62%);--cj:hsl(140 55% 56%);--ck:hsl(230 85% 74%);--blu:#8fb0ff;--gold:#e9b44c;--on:#10131c;--sh:0 10px 28px -14px rgba(0,0,0,.6)}}
+:root{--bg:#f6f7f9;--card:#fff;--fg:#1a1f2b;--mut:#596273;--line:#d6dae3;--acc:#0b6e66;--on:#fff;--ok:#12703f;--bad:#c42b3c;--ci:hsl(20 75% 44%);--cj:hsl(140 60% 30%);--ck:hsl(230 65% 50%);--ui:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#13161d;--card:#1b2029;--fg:#e8ebf2;--mut:#9aa3b6;--line:#2c3342;--acc:#3dc2b3;--on:#0d1117;--ok:#4cc88a;--bad:#ff7a8a;--ci:hsl(20 85% 62%);--cj:hsl(140 55% 56%);--ck:hsl(230 85% 74%)}}
 *{box-sizing:border-box}
-html{scroll-padding-top:12px;-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:clamp(16px,.9rem + .25vw,18px)/1.55 var(--font)}
-main{max-width:min(100%,1680px);margin:0 auto;padding:clamp(20px,4vw,40px) clamp(12px,3vw,28px) 64px}
-h1{font-size:clamp(1.6rem,1.2rem + 1.6vw,2.4rem);line-height:1.15;margin:0 0 6px}
-h2{font-size:1.3rem;margin:0 0 4px}
-p{margin:.4em 0;max-width:68ch}
-.lede{color:var(--mut)}
-section{--ac:var(--ok);background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ac);border-radius:8px;box-shadow:var(--sh);padding:clamp(14px,2.4vw,26px);margin:clamp(18px,3vw,30px) 0}
-#equiv{--ac:var(--blu)}#ma{--ac:var(--leg)}#hopf{--ac:var(--gold)}
-h2::before{content:"";display:inline-block;width:.5em;height:.5em;border-radius:50%;background:var(--ac);margin-right:.55em;vertical-align:.1em}
-.note{color:var(--mut);font-size:.9rem}
-.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,9.5rem),1fr));gap:12px 16px;align-items:end;margin:12px 0}
-label{display:flex;flex-direction:column;font-size:.85rem;color:var(--mut);gap:3px}
-input,select,button{font:inherit;font-size:16px;min-height:40px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:5px 8px}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:clamp(14px,.85rem + .2vw,16px)/1.5 var(--ui)}
+.top,main{max-width:min(100%,1480px);margin:0 auto;padding-inline:clamp(12px,3vw,28px)}
+.top{padding-block:clamp(16px,3vw,28px) 4px}
+h1{font-size:clamp(1.25rem,1rem + 1vw,1.7rem);margin:0;line-height:1.2}
+h2{font-size:1.1rem;margin:0 0 4px}
+p{margin:.3em 0}.top p,.spec,.note{color:var(--mut)}.spec,.note{font-size:.9em;max-width:70ch}
+.bench{display:grid;grid-template-columns:clamp(290px,28vw,420px) minmax(0,1fr);gap:clamp(16px,3vw,36px);align-items:start;padding-block:16px 28px}
+.view{position:sticky;top:12px}
+#hf{display:block;width:100%;height:min(76vh,720px);min-height:260px;background:var(--card);border:1px solid var(--line);border-radius:8px;cursor:grab;touch-action:none}
+#hf:active{cursor:grabbing}
+.bar{display:flex;gap:8px;align-items:center;margin-top:8px}.hint{font-size:.85em;color:var(--mut);margin:6px 0 0}
+fieldset{border:0;border-top:1px solid var(--line);margin:0;padding:10px 0 12px;min-width:0}
+legend{font-weight:600;padding:0 8px 0 0;font-size:.9em;color:var(--mut)}
+.ctl{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:0 8px;margin:4px 0}
+.ctl output{font-family:var(--mono);font-size:.9em}
+.ctl input,.ctl select{grid-column:1/-1;width:100%}
+button,select,input{margin:0}
+button,select,input[type=number]{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:6px;min-height:40px;padding:0 12px}
+button{cursor:pointer}button:hover{border-color:var(--mut)}
+select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 17px) 55%,calc(100% - 12px) 55%;background-size:5px 5px;background-repeat:no-repeat}
 input[type=number]{width:100%;min-width:0;font-family:var(--mono)}
-input[type=range]{padding:0;width:100%;min-height:32px}
-input,select{border-radius:6px}
-input[type=range],input[type=checkbox]{accent-color:var(--ac)}
-input[type=number]:focus,select:focus{border-color:var(--ac)}
-select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 17px) 55%,calc(100% - 12px) 55%;background-size:5px 5px;background-repeat:no-repeat}
-button{cursor:pointer;background:var(--ac);color:var(--on);border-color:var(--ac);border-radius:6px;font-weight:600;padding:8px 18px;transition:filter .15s,transform .05s}
-.row>button{grid-column:1/-1;justify-self:start}
-button:hover{filter:brightness(1.1)}
-button:active{transform:translateY(1px)}
-label>span{color:var(--ink);font-variant-numeric:tabular-nums}
-:is(input,select,button):focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.primary{width:100%;min-height:46px;background:var(--acc);border-color:var(--acc);color:var(--on);font-weight:600}
+.primary:hover{filter:brightness(1.08);border-color:var(--acc)}.primary:disabled{opacity:.4;cursor:not-allowed;filter:none}
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;border:0;padding:0;height:28px;cursor:pointer;--p:50%}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:99px;background:linear-gradient(var(--acc),var(--acc)) 0/var(--p) 100% no-repeat,var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-6px;border-radius:50%;background:var(--card);border:2px solid var(--acc)}
+input[type=range]::-moz-range-track{height:4px;border-radius:99px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:4px;border-radius:99px;background:var(--acc)}
+input[type=range]::-moz-range-thumb{box-sizing:border-box;width:16px;height:16px;border-radius:50%;background:var(--card);border:2px solid var(--acc)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:4px 28px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative;cursor:pointer;--c:var(--acc)}
+.chip input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.chip span{display:inline-flex;align-items:center;min-height:38px;padding:0 16px;border:1.5px solid var(--c);border-radius:999px;color:var(--c);font-weight:600}
+.chip input:checked+span{background:var(--c);color:var(--on)}.chip input:checked+span::before{content:"✓ ";margin-right:.3em}
+.chip input:focus-visible+span{outline:2px solid var(--acc);outline-offset:2px}
+.seg{display:inline-flex}.seg button{border-radius:0;margin-left:-1px;padding:0 18px}.seg button:first-child{border-radius:6px 0 0 6px;margin-left:0}.seg button:last-child{border-radius:0 6px 6px 0}
+.seg button[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--on)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 4px}
+.stats div{border-top:1px solid var(--line);padding-top:4px}.stats dt{font-size:.78em;color:var(--mut)}.stats dd{margin:0;font-family:var(--mono);font-weight:600}
+.status{margin:6px 0 0;display:grid;gap:4px;font-size:.88em;color:var(--mut)}.status span::before{content:"! ";font-weight:700;color:var(--bad)}
+#checks{border-top:1px solid var(--line);padding-block:20px 56px}
+details{border-top:1px solid var(--line)}details:last-of-type{border-bottom:1px solid var(--line)}
+summary{display:flex;align-items:center;gap:14px;min-height:52px;cursor:pointer;list-style:none;font-weight:600}
+summary::-webkit-details-marker{display:none}
+summary .res{margin-left:auto;font-weight:400;font-family:var(--mono);font-size:.82em;display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:flex-end}
+summary::after{content:"+";font-size:1.3em;color:var(--mut);width:1em;text-align:center}details[open] summary::after{content:"−"}
+details>.body{padding:4px 0 20px}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}
 .cols{display:flex;flex-wrap:wrap;gap:12px clamp(20px,4vw,48px);align-items:flex-start}
 .col{flex:1 1 min(100%,22rem);min-width:0;container-type:inline-size}.col.wide{flex:2 1 min(100%,30rem)}
 .kv>div{display:flex;flex-wrap:wrap;gap:2px 14px;padding:6px 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:clamp(.78rem,.55rem + 1.6cqi,.95rem)}
-.kv b{font-weight:600;color:var(--mut);min-width:5.5em}
-.kv span{overflow-wrap:anywhere}
-.qrow{display:flex;gap:8px;margin:8px 0}
+.kv b{font-weight:600;color:var(--mut);min-width:5.5em}.kv span{overflow-wrap:anywhere}
+.qrow{display:flex;gap:8px;margin:8px 0}.qrow b{flex:0 0 1.2em;padding-top:1.5rem;color:var(--mut)}
+.qrow label{display:flex;flex-direction:column;font-size:.8em;color:var(--mut);gap:2px}
 .qf{flex:1;min-width:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.eqr{display:grid;grid-template-columns:1fr auto auto;gap:2px 16px;padding:8px 0;border-bottom:1px solid var(--line)}.eqr .num{font-family:var(--mono)}
 @container (min-width:22rem){.qf{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @container (max-width:24rem){.kv>div{flex-direction:column;gap:0}}
 @container (max-width:28rem){.eqr{grid-template-columns:1fr auto}.eqr .nm{grid-column:1/-1}}
-.qrow b{flex:0 0 1.2em;padding-top:1.6rem;color:var(--mut)}
-.eqr{display:grid;grid-template-columns:1fr auto auto;gap:2px 16px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.9rem}
-.eqr .num{font-family:var(--mono)}
-.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}
-canvas{width:100%;height:auto;aspect-ratio:16/10;min-height:240px;max-height:560px;display:block;margin-top:8px}
-.key{display:flex;gap:18px;flex-wrap:wrap;font-size:.88rem}
-.key i{display:inline-block;width:22px;height:0;border-top:3px solid;vertical-align:middle;margin-right:6px}
-input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;border:0;padding:0;height:30px;cursor:pointer;--p:50%}
-input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:99px;background:linear-gradient(var(--ac),var(--ac)) 0/var(--p) 100% no-repeat,var(--line)}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--card);border:3px solid var(--ac);box-shadow:0 1px 4px rgba(0,0,0,.28);transition:transform .12s}
-input[type=range]::-moz-range-track{height:6px;border-radius:99px;background:var(--line)}
-input[type=range]::-moz-range-progress{height:6px;border-radius:99px;background:var(--ac)}
-input[type=range]::-moz-range-thumb{box-sizing:border-box;width:20px;height:20px;border-radius:50%;background:var(--card);border:3px solid var(--ac);box-shadow:0 1px 4px rgba(0,0,0,.28);transition:transform .12s}
-input[type=range]:hover::-webkit-slider-thumb,input[type=range]:hover::-moz-range-thumb{transform:scale(1.15)}
-input[type=range]:active::-webkit-slider-thumb,input[type=range]:active::-moz-range-thumb{transform:scale(1.28)}
-.chips{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0}
-.chip{position:relative;flex-direction:row;cursor:pointer;--c:var(--ac)}
-.chip input{position:absolute;inset:0;width:100%;height:100%;min-height:0;margin:0;opacity:0;cursor:pointer}
-.chip span{display:inline-flex;align-items:center;min-height:38px;padding:0 20px;border:1.5px solid var(--c);border-radius:999px;color:var(--c);font-weight:700;line-height:1.3;transition:background .15s,color .15s}
-.chip:hover span{background:color-mix(in srgb,var(--c) 14%,transparent)}
-.chip input:checked+span{background:var(--c);color:var(--on)}
-.chip input:focus-visible+span{outline:2px solid var(--ac);outline-offset:2px}
-button.ghost{background:transparent;color:var(--ac);border:1.5px solid var(--ac)}
-button.ghost:hover{background:color-mix(in srgb,var(--ac) 14%,transparent);filter:none}
-.seg{display:inline-flex;margin:4px 0 6px}
-.seg button{border-radius:0;margin-left:-1.5px;padding:7px 16px;min-height:38px}
-.seg button:first-child{border-radius:6px 0 0 6px;margin-left:0}.seg button:last-child{border-radius:0 6px 6px 0}
-.seg button[aria-pressed=true]{background:var(--ac);color:var(--on)}
-#hf{cursor:grab;touch-action:none}#hf:active{cursor:grabbing}#hf:focus-visible{outline:2px solid var(--ac);outline-offset:3px;border-radius:6px}
+.key{display:flex;gap:18px;flex-wrap:wrap;font-size:.85em;margin-top:8px}.key i{display:inline-block;width:22px;border-top:3px solid;vertical-align:middle;margin-right:6px}
+#cv{width:100%;height:auto;aspect-ratio:16/10;min-height:220px;max-height:520px;display:block;margin-top:6px}
+@media (max-width:920px){
+ .bench{grid-template-columns:1fr}
+ .view{order:-1;top:0;z-index:5;background:var(--bg);padding:8px 0;border-bottom:1px solid var(--line)}
+ #hf{height:clamp(140px,30vh,300px);min-height:0}
+ .hint{display:none}
+}
 </style>
 </head>
 <body>
+<header class="top"><h1>Quaternion lab</h1><p>Build Hopf-fibre meshes for sculpting, with the quaternion checks behind them.</p></header>
 <main>
-<h1>Quaternion lab</h1>
-<p class="lede">Four live pieces, written from scratch and independent of the legacy repos: the quaternion algebra, the one symmetry quaternion layers really have, what the Monge-Ampère test says about Eguchi-Hanson and Taub-NUT, and Hopf fibres you can export as an OBJ.</p>
-
-<section id="algebra">
-<h2>Hamilton product</h2>
-<p class="note">Components are written (r, i, j, k). Order matters: a⊗b and b⊗a differ.</p>
-<div class="cols">
-<div class="col"><div id="qin"></div><div class="kv" id="qout"></div></div>
-<div class="col"><p class="note" style="margin-top:0">Defining relations, computed with the same function:</p><div class="kv" id="rel"></div></div>
+<section class="bench" id="hopf" aria-labelledby="hh">
+<div class="panel">
+<h2 id="hh">Hopf fibres to OBJ</h2>
+<p class="spec">Circles e<sup>ut</sup>·q on the 3-sphere for u = i, j, k, projected stereographically. The OBJ has one group per fibration and ring, centred and spanning −1 to 1.</p>
+<fieldset><legend>Density</legend><div class="seg" role="group" aria-label="Mesh density"><button data-p="0" aria-pressed="false">Light</button><button data-p="1" aria-pressed="true">Medium</button><button data-p="2" aria-pressed="false">Heavy</button></div></fieldset>
+<fieldset><legend>Fibrations</legend><div class="chips" role="group" aria-label="Fibrations"><label class="chip" style="--c:var(--ci)"><input type="checkbox" id="fI" checked><span>I</span></label><label class="chip" style="--c:var(--cj)"><input type="checkbox" id="fJ" checked><span>J</span></label><label class="chip" style="--c:var(--ck)"><input type="checkbox" id="fK" checked><span>K</span></label></div></fieldset>
+<fieldset><legend>Arrangement</legend>
+<div class="grid">
+<div class="ctl"><label for="hL">Rings of fibres</label><output id="hl"></output><input type="range" id="hL" min="1" max="8" step="1" value="3"></div>
+<div class="ctl"><label for="hN">Fibres per ring</label><output id="hn"></output><input type="range" id="hN" min="3" max="32" step="1" value="8"></div>
+<div class="ctl"><label for="hE">Outer ring reach</label><output id="he"></output><input type="range" id="hE" min="0.3" max="0.8" step="0.01" value="0.6"></div>
+<div class="ctl"><label for="hP">4D roll</label><output id="hs"></output><input type="range" id="hP" min="0" max="90" step="1" value="0"></div>
 </div>
+</fieldset>
+<fieldset><legend>Tube</legend>
+<div class="grid">
+<div class="ctl"><label for="hR">Radius</label><output id="hr"></output><input type="range" id="hR" min="0.004" max="0.06" step="0.002" value="0.02"></div>
+<div class="ctl"><label for="hS">Sides</label><output id="hq"></output><input type="range" id="hS" min="4" max="24" step="1" value="8"></div>
+<div class="ctl"><label for="hM">Points per fibre</label><output id="hm"></output><input type="range" id="hM" min="32" max="256" step="8" value="80"></div>
+</div>
+</fieldset>
+<div class="out"><button class="primary" id="hx">Download OBJ</button>
+<dl class="stats"><div><dt>Fibres</dt><dd id="stF"></dd></div><div><dt>Quads</dt><dd id="stQ"></dd></div><div><dt>Size</dt><dd id="stS"></dd></div><div><dt>Groups</dt><dd id="stG"></dd></div></dl>
+<p class="status" id="hinfo" role="status" aria-live="polite"></p></div>
+</div>
+<div class="view"><canvas id="hf" tabindex="0" role="img" aria-label="Shaded 3D preview of the Hopf fibre tubes. Drag or use arrow keys to rotate, plus and minus to zoom."></canvas>
+<div class="bar"><label class="chip"><input type="checkbox" id="spin"><span>Turntable</span></label><button id="hreset">Reset view</button></div>
+<p class="hint">Drag or arrow keys to rotate · pinch, Ctrl/⌘ + scroll or +/− to zoom · double-click to recentre. The preview shows the tubes the export writes.</p></div>
 </section>
-
-<section id="equiv">
-<h2>Equivariance under u⊗x</h2>
-<p>A layer that multiplies the input by a weight on the right, x⊗W, commutes with multiplying every input on the left by a unit quaternion u. A norm-based activation keeps that property. A componentwise ReLU breaks it. The numbers are ‖f(u⊗x) − u⊗f(x)‖ on random inputs.</p>
-<div class="cols">
-<div class="col">
-<div class="row">
-<label>Layer computes<select id="conv"><option value="R">x ⊗ W</option><option value="L">W ⊗ x</option></select></label>
-<button id="reroll">New random weights</button>
-<label><span id="ul0">u r</span><input type="range" id="u0" min="-1" max="1" step="0.01" value="0.7"></label>
-<label><span id="ul1">u i</span><input type="range" id="u1" min="-1" max="1" step="0.01" value="0.3"></label>
-<label><span id="ul2">u j</span><input type="range" id="u2" min="-1" max="1" step="0.01" value="-0.5"></label>
-<label><span id="ul3">u k</span><input type="range" id="u3" min="-1" max="1" step="0.01" value="0.4"></label>
-</div>
-<p class="note" id="uinfo"></p>
-</div>
-<div class="col"><div id="eq"></div></div>
-</div>
-</section>
-
-<section id="ma" class="geo">
-<h2>Monge-Ampère on ℂ²</h2>
-<p>For a Kähler potential that depends only on t = r² = |z₁|² + |z₂|², the complex Monge-Ampère determinant is K′(K′ + tK″). A Ricci-flat metric needs it to be constant. The legacy engine instead took a 1×1 Hessian in r, which is just φ″(r), and never compared it to anything.</p>
-<div class="cols">
-<div class="col">
-<div class="row">
-<label>Potential<select id="man"><option value="eh">Eguchi-Hanson</option><option value="tn">Taub-NUT (as in the legacy file)</option></select></label>
-<label><span id="plab">a = 1.00</span><input type="range" id="par" min="0.2" max="2" step="0.05" value="1"></label>
-</div>
-<p id="verdict"></p>
-<p class="note">Eguchi-Hanson is computed from its closed-form K′(t). The Taub-NUT potential is the one in the legacy file; whether a single radial potential can describe Taub-NUT at all is something to check against a reference.</p>
-</div>
-<div class="col wide">
-<div class="key"><span><i style="border-color:var(--ok)"></i>correct determinant</span><span><i style="border-color:var(--leg);border-top-style:dashed"></i>legacy φ″(r)</span></div>
-<canvas id="cv" role="img" aria-label="Plot of the correct Monge-Ampère determinant and the legacy second derivative against r"></canvas>
-</div>
-</div>
-</section>
-<section id="hopf">
-<h2>Hopf fibres to OBJ</h2>
-<p>Choosing an imaginary unit u splits the 3-sphere into circles q ↦ e^{ut}q, a Hopf fibration. The units i, j and k give three fibrations, one for each of the hyperkähler triple's complex structures I, J, K, and every point lies on exactly one circle of each. Projected stereographically into 3D, the circles become interlocking rings. The export turns each ring into a closed quad tube, with one OBJ group per fibration and ring (I_ring_01, J_ring_01, K_ring_01, …), and scales the form to fit between −1 and 1 on every axis, centred at the origin.</p>
-<div class="cols">
-<div class="col">
-<div class="seg" role="group" aria-label="Mesh density"><button class="ghost" data-p="0" aria-pressed="false">Light</button><button class="ghost" data-p="1" aria-pressed="true">Medium</button><button class="ghost" data-p="2" aria-pressed="false">Heavy</button></div>
-<div class="chips" role="group" aria-label="Fibrations"><label class="chip" style="--c:var(--ci)"><input type="checkbox" id="fI" checked><span>I</span></label><label class="chip" style="--c:var(--cj)"><input type="checkbox" id="fJ" checked><span>J</span></label><label class="chip" style="--c:var(--ck)"><input type="checkbox" id="fK" checked><span>K</span></label></div>
-<div class="row">
-<label><span id="hl"></span><input type="range" id="hL" min="1" max="8" step="1" value="3"></label>
-<label><span id="hn"></span><input type="range" id="hN" min="3" max="32" step="1" value="8"></label>
-<label><span id="he"></span><input type="range" id="hE" min="0.3" max="0.8" step="0.01" value="0.6"></label>
-<label><span id="hs"></span><input type="range" id="hP" min="0" max="90" step="1" value="0"></label>
-<label><span id="hr"></span><input type="range" id="hR" min="0.004" max="0.06" step="0.002" value="0.02"></label>
-<label><span id="hq"></span><input type="range" id="hS" min="4" max="24" step="1" value="8"></label>
-<label><span id="hm"></span><input type="range" id="hM" min="32" max="256" step="8" value="80"></label>
-</div>
-<button id="hx">Download OBJ</button>
-<p class="note" id="hinfo"></p>
-<p class="note">Fibres that pass too close to the projection point would become enormous, so they are dropped and counted above.</p>
-</div>
-<div class="col wide"><canvas id="hf" tabindex="0" role="img" aria-label="Shaded 3D preview of the Hopf fibre tubes. Drag or use arrow keys to rotate, plus and minus to zoom."></canvas>
-<div class="chips"><label class="chip"><input type="checkbox" id="spin"><span>Turntable</span></label><button class="ghost" id="hreset">Reset view</button></div>
-<p class="note">Drag or use the arrow keys to rotate. Pinch, Ctrl/⌘ + scroll, or +/− to zoom. Double-click to recentre. The preview shows the same tubes the export writes, simplified only when the mesh is very large.</p></div>
-</div>
+<section id="checks" aria-labelledby="ch"><h2 id="ch">Checks</h2><p class="spec">The algebra the forms rely on. Results show live in each header.</p>
+<details id="d1"><summary><span>Hamilton product</span><span class="res" id="r1"></span></summary><div class="body"><div class="cols"><div class="col"><div id="qin"></div><div class="kv" id="qout"></div></div><div class="col"><p class="note" style="margin-top:0">Defining relations</p><div class="kv" id="rel"></div></div></div></div></details>
+<details id="d2"><summary><span>Equivariance under u⊗x</span><span class="res" id="r2"></span></summary><div class="body"><p class="spec">Does f(u⊗x) equal u⊗f(x)? A right-multiplying layer keeps it, and so does a norm-based activation. A componentwise ReLU breaks it. Errors are ‖f(u⊗x) − u⊗f(x)‖ on random inputs.</p><div class="cols"><div class="col">
+<div class="ctl"><label for="conv">Layer computes</label><select id="conv"><option value="R">x ⊗ W</option><option value="L">W ⊗ x</option></select></div>
+<div class="ctl"><label for="u0">u<sub>r</sub></label><output id="ul0"></output><input type="range" id="u0" min="-1" max="1" step="0.01" value="0.7"></div><div class="ctl"><label for="u1">u<sub>i</sub></label><output id="ul1"></output><input type="range" id="u1" min="-1" max="1" step="0.01" value="0.3"></div><div class="ctl"><label for="u2">u<sub>j</sub></label><output id="ul2"></output><input type="range" id="u2" min="-1" max="1" step="0.01" value="-0.5"></div><div class="ctl"><label for="u3">u<sub>k</sub></label><output id="ul3"></output><input type="range" id="u3" min="-1" max="1" step="0.01" value="0.4"></div>
+<button id="reroll" style="margin-top:8px">New random weights</button><p class="note" id="uinfo"></p></div><div class="col"><div id="eq"></div></div></div></div></details>
+<details id="d3"><summary><span>Monge-Ampère on ℂ²</span><span class="res" id="r3"></span></summary><div class="body"><p class="spec">For a Kähler potential K(t) with t = r² = |z₁|² + |z₂|², the determinant is K′(K′ + tK″), and a Ricci-flat metric needs it constant. The legacy engine took a 1×1 Hessian in r instead, which is just φ″(r), and never compared it to anything.</p><div class="cols"><div class="col">
+<div class="ctl"><label for="man">Potential</label><select id="man"><option value="eh">Eguchi-Hanson</option><option value="tn">Taub-NUT (as in the legacy file)</option></select></div>
+<div class="ctl"><label for="par" id="plab">Scale a</label><output id="pval"></output><input type="range" id="par" min="0.2" max="2" step="0.05" value="1"></div>
+<p id="verdict"></p><p class="note">Eguchi-Hanson uses its closed-form K′(t). Whether a single radial potential can describe Taub-NUT at all should be checked against a reference.</p></div>
+<div class="col wide"><div class="key"><span><i style="border-color:var(--ok)"></i>correct determinant</span><span><i style="border-color:var(--ck);border-top-style:dashed"></i>legacy φ″(r)</span></div><canvas id="cv" role="img" aria-label="Plot of the correct Monge-Ampère determinant and the legacy second derivative against r"></canvas></div></div></div></details>
 </section>
 </main>
-
 <script>
 const $=id=>document.getElementById(id);
 const H=(a,b)=>[a[0]*b[0]-a[1]*b[1]-a[2]*b[2]-a[3]*b[3],
@@ -176,6 +148,8 @@ document.querySelectorAll("[data-q]").forEach(e=>e.addEventListener("input",draw
 const I=[0,1,0,0],J=[0,0,1,0],K=[0,0,0,1];
 const rel=[["i⊗i",H(I,I)],["j⊗j",H(J,J)],["k⊗k",H(K,K)],["i⊗j⊗k",H(H(I,J),K)],["i⊗j",H(I,J)],["j⊗k",H(J,K)],["k⊗i",H(K,I)],["j⊗i",H(J,I)]];
 $("rel").innerHTML=rel.map(([n,v])=>`<div><b>${n}</b><span>${fq(v)}</span></div>`).join("");
+{const ap=(x,y)=>x.every((v,i)=>Math.abs(v-y[i])<1e-12),m1=[-1,0,0,0],ok=ap(H(I,I),m1)&&ap(H(J,J),m1)&&ap(H(K,K),m1)&&ap(H(H(I,J),K),m1)&&ap(H(I,J),K)&&ap(H(J,K),I)&&ap(H(K,I),J);
+$("r1").innerHTML=`<span class="${ok?"ok":"bad"}">i² = j² = k² = ijk = −1 ${ok?"✓":"✗"}</span>`}
 drawAlgebra();
 
 /* ---------- Equivariance ---------- */
@@ -193,13 +167,14 @@ const srelu=q=>q.map(v=>Math.max(v,0));
 const err=(A,Bm)=>Math.sqrt(A.reduce((s,q,i)=>s+q.reduce((t,v,c)=>t+(v-Bm[i][c])**2,0),0));
 function drawEq(){
  let u=[0,1,2,3].map(i=>parseFloat($("u"+i).value));let n=nrm(u);
- if(n<1e-6){u=[1,0,0,0];n=1}u=u.map(v=>v/n);u.forEach((v,i)=>$("ul"+i).textContent="u "+"rijk"[i]+" = "+v.toFixed(2));
+ if(n<1e-6){u=[1,0,0,0];n=1}u=u.map(v=>v/n);u.forEach((v,i)=>$("ul"+i).textContent=v.toFixed(2));
  $("uinfo").textContent="Unit quaternion u = "+fq(u);
  const conv=$("conv").value, uX=X.map(x=>H(u,x));
  const tests=[["linear layer only",x=>x],["linear + modReLU (norm-based)",x=>x.map(modrelu)],["linear + split ReLU (per component)",x=>x.map(srelu)]];
  $("eq").innerHTML=tests.map(([nm,act])=>{
   const lhs=act(layer(uX,conv)), rhs=act(layer(X,conv)).map(y=>H(u,y)), e=err(lhs,rhs), ok=e<1e-9;
   return `<div class="eqr"><span class="nm">${nm}</span><span class="num">${e.toExponential(2)}</span><span class="${ok?"ok":"bad"}">${ok?"equivariant":"not equivariant"}</span></div>`}).join("");
+ $("r2").innerHTML=[...document.querySelectorAll("#eq .eqr")].map((r,i)=>{const ok=!!r.querySelector(".ok");return `<span class="${ok?"ok":"bad"}">${["linear","modReLU","split ReLU"][i]} ${ok?"✓":"✗"}</span>`}).join(" ")
 }
 ["u0","u1","u2","u3","conv"].forEach(id=>$(id).addEventListener("input",drawEq));
 $("reroll").addEventListener("click",reroll);
@@ -216,7 +191,7 @@ function dets(kind,p,r){
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
 function drawMA(){
  const kind=$("man").value,p=parseFloat($("par").value);
- $("plab").textContent=(kind==="eh"?"a":"m")+" = "+p.toFixed(2);
+ $("plab").textContent=kind==="eh"?"Scale a":"NUT scale m";$("pval").textContent=p.toFixed(2);
  const cv=$("cv"),dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
  cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext("2d");g.scale(dpr,dpr);g.clearRect(0,0,w,h);
  const L=44,R=10,T=10,Bt=26,r0=0.1,r1=4,y0=-4,y1=8,N=300;
@@ -227,10 +202,11 @@ function drawMA(){
  const pts=[...Array(N+1)].map((_,i)=>{const r=r0+(r1-r0)*i/N;return[r,dets(kind,p,r)]});
  const line=(key,col,dash)=>{g.beginPath();g.setLineDash(dash);g.strokeStyle=col;g.lineWidth=2.5;
   pts.forEach(([r,d],i)=>i?g.lineTo(X_(r),Y_(d[key])):g.moveTo(X_(r),Y_(d[key])));g.stroke();g.setLineDash([])};
- line("legacy",css("--leg"),[6,5]);line("proper",css("--ok"),[]);
+ line("legacy",css("--ck"),[6,5]);line("proper",css("--ok"),[]);
  const pr=pts.map(([r,d])=>d.proper),lo=Math.min(...pr),hi=Math.max(...pr),flat=hi-lo<1e-6;
  $("verdict").innerHTML=flat?`<span class="ok">Constant:</span> the correct determinant is ${pr[0].toFixed(4)} for every r from ${r0} to ${r1}, so this potential satisfies Monge-Ampère.`
   :`<span class="bad">Not constant:</span> the correct determinant ranges from ${lo.toFixed(3)} to ${hi.toFixed(3)} over r from ${r0} to ${r1}, so this potential does not satisfy Monge-Ampère with a flat volume form.`;
+ const nm=kind==="eh"?"Eguchi-Hanson":"Taub-NUT";$("r3").innerHTML=flat?`<span class="ok">${nm}: det ${pr[0].toFixed(3)}, constant ✓</span>`:`<span class="bad">${nm}: det varies ✗</span>`;
 }
 ["man","par"].forEach(id=>$(id).addEventListener("input",drawMA));
 $("man").addEventListener("change",()=>{$("par").value=1;syncRanges();drawMA()});
@@ -311,10 +287,17 @@ function hdraw(){
   f.pts.forEach((p,i)=>{const x1=p[0]*cy+p[2]*sy,z1=-p[0]*sy+p[2]*cy,y1=p[1]*cx-z1*sx,z2=p[1]*sx+z1*cx,k=3/(3+z2),X=w/2+x1*R*k,Y=h/2-y1*R*k;i?g.lineTo(X,Y):g.moveTo(X,Y)});g.closePath();g.stroke()});
 }
 function hupdate(){
- hdefs.forEach(([i,l,t,f])=>$(l).textContent=t+f(hv(i)));hopf();const sim=meshBuild();glUpload();hdraw();
+ hdefs.forEach(([i,l,t,f])=>$(l).textContent=f(hv(i)));hopf();const sim=meshBuild();glUpload();hdraw();
  const v=HF.length*hv("hM")*hv("hS"),kb=Math.round(v*58/1000),cur=[hv("hL"),hv("hN"),hv("hM"),hv("hS")].join();
  document.querySelectorAll("[data-p]").forEach(b=>b.setAttribute("aria-pressed",String(PRE[b.dataset.p].join()===cur)));
- $("hinfo").textContent=`${HF.length} fibres${HF.cull?` (${HF.cull} dropped near the projection point)`:""} · ${v.toLocaleString()} vertices · ${v.toLocaleString()} quads · about ${kb.toLocaleString()} KB${kb>50000?" (very large, so lower the density before exporting)":""}${sim?" · preview simplified, export is full resolution":""}${gl?"":" · no WebGL, so the preview shows centre lines only"}`;
+ const keys=new Set(HF.map(f=>FN[f.f][0]+f.l)),warn=[];
+ $("stF").textContent=HF.length;$("stQ").textContent=v.toLocaleString();$("stS").textContent=kb>=1000?(kb/1000).toFixed(1)+" MB":kb+" KB";$("stG").textContent=keys.size;
+ if(!HF.length)warn.push("Nothing to export. Turn on at least one fibration.");
+ if(HF.cull)warn.push(HF.cull+" fibres dropped near the projection point. Adjust outer reach or 4D roll to change which ones.");
+ if(kb>50000)warn.push("Very large file. Lower the density before exporting.");
+ if(sim)warn.push("Preview simplified; the export is full resolution.");
+ if(!gl)warn.push("No WebGL, so the preview shows centre lines only.");
+ $("hinfo").innerHTML=warn.map(w=>"<span>"+w+"</span>").join("");$("hx").disabled=!HF.length;
 }
 function exportObj(){
  const r=hv("hR"),S=hv("hS"),out=["# Hopf fibres of S^3 (I, J, K fibrations), stereographic projection; one group per fibration and ring.","# Centred at the origin; centre lines span -1 to 1 before tube thickness."];let off=0,grp="";
