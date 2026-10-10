@@ -19,7 +19,8 @@ p{margin:.3em 0}.top p,.spec,.note{color:var(--mut)}.spec,.note{font-size:.9em;m
 .view{position:sticky;top:12px}
 #hf{display:block;width:100%;height:min(76vh,720px);min-height:260px;background:var(--card);border:1px solid var(--line);border-radius:8px;cursor:grab;touch-action:none}
 #hf:active{cursor:grabbing}
-.bar{display:flex;gap:8px;align-items:center;margin-top:8px}.hint{font-size:.85em;color:var(--mut);margin:6px 0 0}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.82em;color:var(--mut);margin:8px 0 0}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}.hint{font-size:.85em;color:var(--mut);margin:6px 0 0}
 fieldset{border:0;border-top:1px solid var(--line);margin:0;padding:10px 0 12px;min-width:0}
 legend{font-weight:600;padding:0 8px 0 0;font-size:.9em;color:var(--mut)}
 .ctl{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:0 8px;margin:4px 0}
@@ -75,8 +76,10 @@ details>.body{padding:4px 0 20px}
  .bench{grid-template-columns:1fr}
  .view{order:-1;top:0;z-index:5;background:var(--bg);padding:8px 0;border-bottom:1px solid var(--line)}
  #hf{height:clamp(140px,30vh,300px);min-height:0}
- .hint{display:none}
+ .hint,#legend{display:none}
 }
+@media (min-width:921px){#legend2{display:none}}
+@media (max-width:360px){.bar{gap:4px}.bar .chip span,.bar button{padding:0 8px;font-size:13px}}
 </style>
 </head>
 <body>
@@ -105,26 +108,31 @@ details>.body{padding:4px 0 20px}
 </fieldset>
 <div class="out"><button class="primary" id="hx">Download OBJ</button>
 <dl class="stats"><div><dt>Fibres</dt><dd id="stF"></dd></div><div><dt>Quads</dt><dd id="stQ"></dd></div><div><dt>Size</dt><dd id="stS"></dd></div><div><dt>Groups</dt><dd id="stG"></dd></div></dl>
+<p class="note" id="sinfo" style="margin:6px 0 0"></p>
 <p class="status" id="hinfo" role="status" aria-live="polite"></p></div>
 </div>
 <div class="view"><canvas id="hf" tabindex="0" role="img" aria-label="Shaded 3D preview of the Hopf fibre tubes. Drag or use arrow keys to rotate, plus and minus to zoom."></canvas>
-<div class="bar"><label class="chip"><input type="checkbox" id="spin"><span>Turntable</span></label><button id="hreset">Reset view</button></div>
-<p class="hint">Drag or arrow keys to rotate · pinch, Ctrl/⌘ + scroll or +/− to zoom · double-click to recentre. The preview shows the tubes the export writes.</p></div>
+<div class="bar"><label class="chip"><input type="checkbox" id="spin"><span>Turntable</span></label><label class="chip"><input type="checkbox" id="prb" checked><span>Probes</span></label><button id="hreset">Reset view</button></div>
+<p class="legend" id="legend"></p>
+<p class="hint">Drag or arrow keys to rotate · pinch, Ctrl/⌘ + scroll or +/− to zoom · double-click to recentre. The fibre tubes are what the export writes. Probes are extra markers driven by the Checks controls; faint where hidden behind the tubes, and not exported.</p></div>
 </section>
 <section id="checks" aria-labelledby="ch"><h2 id="ch">Checks</h2><p class="spec">The algebra the forms rely on. Results show live in each header.</p>
-<details id="d1"><summary><span>Hamilton product</span><span class="res" id="r1"></span></summary><div class="body"><div class="cols"><div class="col"><div id="qin"></div><div class="kv" id="qout"></div></div><div class="col"><p class="note" style="margin-top:0">Defining relations</p><div class="kv" id="rel"></div></div></div></div></details>
-<details id="d2"><summary><span>Equivariance under u⊗x</span><span class="res" id="r2"></span></summary><div class="body"><p class="spec">Does f(u⊗x) equal u⊗f(x)? A right-multiplying layer keeps it, and so does a norm-based activation. A componentwise ReLU breaks it. Errors are ‖f(u⊗x) − u⊗f(x)‖ on random inputs.</p><div class="cols"><div class="col">
+<p class="legend" id="legend2"></p>
+<details id="d1"><summary><span>Hamilton product</span><span class="res" id="r1"></span></summary><div class="body"><p class="spec">Normalised, a and b are points on the 3-sphere. They appear in the 3D scene as A, B, A⊗B and B⊗A, and the gap between A⊗B and B⊗A is the non-commutativity.</p><div class="cols"><div class="col"><div id="qin"></div><div class="kv" id="qout"></div></div><div class="col"><p class="note" style="margin-top:0">Defining relations</p><div class="kv" id="rel"></div></div></div></div></details>
+<details id="d2"><summary><span>Equivariance under u⊗x</span><span class="res" id="r2"></span></summary><div class="body"><p class="spec">Does f(u⊗x) equal u⊗f(x)? A right-multiplying layer keeps it, and so does a norm-based activation. A componentwise ReLU breaks it. Errors are ‖f(u⊗x) − u⊗f(x)‖ on random inputs. The scene shows, for each network, the first output slot that has a direction (a zero output has none): a large ball at u⊗f(x), a small ball at f(u⊗x), and a bar between them whenever they differ (outputs are normalised onto the 3-sphere). The grey ball is u.</p><div class="cols"><div class="col">
 <div class="ctl"><label for="conv">Layer computes</label><select id="conv"><option value="R">x ⊗ W</option><option value="L">W ⊗ x</option></select></div>
 <div class="grid"><div class="ctl"><label for="u0">u<sub>r</sub></label><output id="ul0"></output><input type="range" id="u0" min="-1" max="1" step="0.01" value="0.7"></div><div class="ctl"><label for="u1">u<sub>i</sub></label><output id="ul1"></output><input type="range" id="u1" min="-1" max="1" step="0.01" value="0.3"></div><div class="ctl"><label for="u2">u<sub>j</sub></label><output id="ul2"></output><input type="range" id="u2" min="-1" max="1" step="0.01" value="-0.5"></div><div class="ctl"><label for="u3">u<sub>k</sub></label><output id="ul3"></output><input type="range" id="u3" min="-1" max="1" step="0.01" value="0.4"></div></div>
 <button id="reroll" style="margin-top:8px">New random weights</button><p class="note" id="uinfo"></p></div><div class="col"><div id="eq"></div></div></div></div></details>
 <details id="d3"><summary><span>Monge-Ampère on ℂ²</span><span class="res" id="r3"></span></summary><div class="body"><p class="spec">For a Kähler potential K(t) with t = r² = |z₁|² + |z₂|², the determinant is K′(K′ + tK″), and a Ricci-flat metric needs it constant. The legacy engine took a 1×1 Hessian in r instead, which is just φ″(r), and never compared it to anything.</p><div class="cols"><div class="col">
 <div class="ctl"><label for="man">Potential</label><select id="man"><option value="eh">Eguchi-Hanson</option><option value="tn">Taub-NUT (as in the legacy file)</option></select></div>
 <div class="ctl"><label for="par" id="plab">Scale a</label><output id="pval"></output><input type="range" id="par" min="0.2" max="2" step="0.05" value="1"></div>
-<p id="verdict"></p><p class="note">Eguchi-Hanson uses its closed-form K′(t). Whether a single radial potential can describe Taub-NUT at all should be checked against a reference.</p></div>
+<div class="ctl"><label for="rr">Slice radius r</label><output id="rrv"></output><input type="range" id="rr" min="0.3" max="4" step="0.05" value="4"></div>
+<p id="sqv" class="note"></p><p id="verdict"></p><p class="note">Eguchi-Hanson uses its closed-form K′(t). Whether a single radial potential can describe Taub-NUT at all should be checked against a reference. The fibre factor s = √(1 + tK″/K′) comes from the metric along the Hopf fibres; the scene encodes it by scaling each fibre circle about its centre, which is a visual encoding and not an isometric embedding.</p></div>
 <div class="col wide"><div class="key"><span><i style="border-color:var(--ok)"></i>correct determinant</span><span><i style="border-color:var(--ck);border-top-style:dashed"></i>legacy φ″(r)</span></div><canvas id="cv" role="img" aria-label="Plot of the correct Monge-Ampère determinant and the legacy second derivative against r"></canvas></div></div></div></details>
 </section>
 </main>
 <script>
+var HREADY=false,EQ=null;
 const $=id=>document.getElementById(id);
 const H=(a,b)=>[a[0]*b[0]-a[1]*b[1]-a[2]*b[2]-a[3]*b[3],
  a[0]*b[1]+a[1]*b[0]+a[2]*b[3]-a[3]*b[2],
@@ -143,7 +151,7 @@ function drawAlgebra(){
  const ab=H(q[0],q[1]), ba=H(q[1],q[0]), d=ab.map((v,i)=>v-ba[i]);
  $("qout").innerHTML=`<div><b>a⊗b</b><span>${fq(ab)}</span></div><div><b>b⊗a</b><span>${fq(ba)}</span></div><div><b>difference</b><span>${fq(d)}</span></div><div><b>|a⊗b| vs |a||b|</b><span>${nrm(ab).toFixed(6)} vs ${(nrm(q[0])*nrm(q[1])).toFixed(6)}</span></div>`;
 }
-document.querySelectorAll("[data-q]").forEach(e=>e.addEventListener("input",drawAlgebra));
+document.querySelectorAll("[data-q]").forEach(e=>e.addEventListener("input",()=>{drawAlgebra();if(HREADY)refreshProbes()}));
 const I=[0,1,0,0],J=[0,0,1,0],K=[0,0,0,1];
 const rel=[["i⊗i",H(I,I)],["j⊗j",H(J,J)],["k⊗k",H(K,K)],["i⊗j⊗k",H(H(I,J),K)],["i⊗j",H(I,J)],["j⊗k",H(J,K)],["k⊗i",H(K,I)],["j⊗i",H(J,I)]];
 $("rel").innerHTML=rel.map(([n,v])=>`<div><b>${n}</b><span>${fq(v)}</span></div>`).join("");
@@ -173,7 +181,8 @@ function drawEq(){
  $("eq").innerHTML=tests.map(([nm,act])=>{
   const lhs=act(layer(uX,conv)), rhs=act(layer(X,conv)).map(y=>H(u,y)), e=err(lhs,rhs), ok=e<1e-9;
   return `<div class="eqr"><span class="nm">${nm}</span><span class="num">${e.toExponential(2)}</span><span class="${ok?"ok":"bad"}">${ok?"equivariant":"not equivariant"}</span></div>`}).join("");
- $("r2").innerHTML=[...document.querySelectorAll("#eq .eqr")].map((r,i)=>{const ok=!!r.querySelector(".ok");return `<span class="${ok?"ok":"bad"}">${["linear","modReLU","split ReLU"][i]} ${ok?"✓":"✗"}</span>`}).join(" ")
+ $("r2").innerHTML=[...document.querySelectorAll("#eq .eqr")].map((r,i)=>{const ok=!!r.querySelector(".ok");return `<span class="${ok?"ok":"bad"}">${["linear","modReLU","split ReLU"][i]} ${ok?"✓":"✗"}</span>`}).join(" ");
+ EQ={U:u,pairs:tests.map(([nm,act])=>{const L=act(layer(uX,conv)),Rr=act(layer(X,conv)).map(y=>H(u,y)),k=L.findIndex((q,i)=>nrm(q)>1e-9&&nrm(Rr[i])>1e-9);return k<0?null:{l:L[k],r:Rr[k],k}})};if(HREADY)refreshProbes()
 }
 ["u0","u1","u2","u3","conv"].forEach(id=>$(id).addEventListener("input",drawEq));
 $("reroll").addEventListener("click",reroll);
@@ -202,13 +211,14 @@ function drawMA(){
  const line=(key,col,dash)=>{g.beginPath();g.setLineDash(dash);g.strokeStyle=col;g.lineWidth=2.5;
   pts.forEach(([r,d],i)=>i?g.lineTo(X_(r),Y_(d[key])):g.moveTo(X_(r),Y_(d[key])));g.stroke();g.setLineDash([])};
  line("legacy",css("--ck"),[6,5]);line("proper",css("--ok"),[]);
+ {const rr=parseFloat($("rr").value);g.setLineDash([2,4]);g.strokeStyle=css("--mut");g.lineWidth=1.5;g.beginPath();g.moveTo(X_(rr),T);g.lineTo(X_(rr),h-Bt);g.stroke();g.setLineDash([])}
  const pr=pts.map(([r,d])=>d.proper),lo=Math.min(...pr),hi=Math.max(...pr),flat=hi-lo<1e-6;
  $("verdict").innerHTML=flat?`<span class="ok">Constant:</span> the correct determinant is ${pr[0].toFixed(4)} for every r from ${r0} to ${r1}, so this potential satisfies Monge-Ampère.`
   :`<span class="bad">Not constant:</span> the correct determinant ranges from ${lo.toFixed(3)} to ${hi.toFixed(3)} over r from ${r0} to ${r1}, so this potential does not satisfy Monge-Ampère with a flat volume form.`;
  const nm=kind==="eh"?"Eguchi-Hanson":"Taub-NUT";$("r3").innerHTML=flat?`<span class="ok">${nm}: det ${pr[0].toFixed(3)}, constant ✓</span>`:`<span class="bad">${nm}: det varies ✗</span>`;
 }
-["man","par"].forEach(id=>$(id).addEventListener("input",drawMA));
-$("man").addEventListener("change",()=>{$("par").value=1;syncRanges();drawMA()});
+["man","par","rr"].forEach(id=>$(id).addEventListener("input",()=>{drawMA();if(HREADY)hupdate()}));
+$("man").addEventListener("change",()=>{$("par").value=1;syncRanges();drawMA();if(HREADY)hupdate()});
 new ResizeObserver(drawMA).observe($("cv"));
 matchMedia("(prefers-color-scheme:dark)").addEventListener("change",drawMA);
 reroll();drawMA();
@@ -217,8 +227,8 @@ const hv=id=>parseFloat($(id).value);
 const hdefs=[["hL","hl","Rings of fibres: ",v=>v],["hN","hn","Fibres per ring: ",v=>v],["hE","he","Outer ring reaches: ",v=>v.toFixed(2)+"π"],["hP","hs","4D roll: ",v=>v+"°"],["hR","hr","Tube radius: ",v=>v.toFixed(3)],["hS","hq","Tube sides: ",v=>v],["hM","hm","Points per fibre: ",v=>v]];
 const QP=[null,[Math.SQRT1_2,0,0,Math.SQRT1_2],[Math.SQRT1_2,0,-Math.SQRT1_2,0]],FN=[["I","fI",20],["J","fJ",140],["K","fK",230]];
 const PRE=[[2,6,64,6],[3,8,80,8],[5,12,160,12]],cl=(v,a,b)=>Math.max(a,Math.min(b,v));
-let HF=[],GLM=null,gl=null,GU={},GB={},yaw=.6,pit=.4,zoom=1,raf=0,pd=0;const ptr=new Map();
-function hopf(){
+let MK=[],MB=[],PRB=null,GB2={},HF=[],GLM=null,gl=null,GU={},GB={},yaw=.6,pit=.4,zoom=1,raf=0,pd=0;const ptr=new Map();
+function hopf(){const sq=fibreScale();
  const L=hv("hL"),Nn=hv("hN"),M=hv("hM"),E=hv("hE"),psi=hv("hP")*Math.PI/180,cp=Math.cos(psi),sp=Math.sin(psi),raw=[];let cull=0;
  for(let f=0;f<3;f++){if(!$(FN[f][1]).checked)continue;
  for(let l=0;l<L;l++){const eta=Math.PI*(.1+(E-.1)*(l+.5)/L),c=Math.cos(eta/2),sn=Math.sin(eta/2);
@@ -227,12 +237,12 @@ function hopf(){
     if(QP[f])q=H(QP[f],q);
     const a=q[0]*cp-q[3]*sp,d=q[0]*sp+q[3]*cp,den=1-d;if(den<.1){ok=false;break}
     pts.push([a/den,q[1]/den,q[2]/den])}
-   if(ok)raw.push({pts,l,f,h:FN[f][2]+ph/(2*Math.PI)*40});else cull++}}}
+   if(ok){if(Math.abs(sq-1)>1e-9){const c=circ(pts[0],pts[M/3|0],pts[2*M/3|0]);pts.forEach(q=>{for(let i=0;i<3;i++)q[i]=c[i]+sq*(q[i]-c[i])})}raw.push({pts,l,f,h:FN[f][2]+ph/(2*Math.PI)*40})}else cull++}}}
  const lo=[1e9,1e9,1e9],hi=[-1e9,-1e9,-1e9];
  raw.forEach(f=>f.pts.forEach(p=>p.forEach((v,i)=>{lo[i]=Math.min(lo[i],v);hi[i]=Math.max(hi[i],v)})));
  const ctr=lo.map((v,i)=>(v+hi[i])/2),sc=raw.length?1/Math.max(...hi.map((v,i)=>(v-lo[i])/2),1e-9):1;
  raw.forEach(f=>f.pts=f.pts.map(p=>p.map((v,i)=>(v-ctr[i])*sc)));
- HF=raw;HF.cull=cull;
+ HF=raw;HF.cull=cull;HF.s=sq;HF.tf={ctr,sc};
 }
 function hsl(h,s,l){const a=s*Math.min(l,1-l),k=n=>(n+h/30)%12;return[0,8,4].map(n=>l-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1)))}
 function tube(P,r,S){
@@ -258,16 +268,16 @@ function meshBuild(){
  return ps!==S0||step>1;
 }
 const VS="attribute vec3 p;attribute vec3 n;attribute vec3 c;uniform mat3 R;uniform float f,asp;varying vec3 vc,vn;void main(){vec3 q=R*p;vn=R*n;vc=c;float w=4.2+q.z;gl_Position=vec4(q.x*f/asp,q.y*f,w*1.0100503-0.201005,w);}";
-const FS="precision mediump float;varying vec3 vc,vn;void main(){vec3 n=normalize(vn);float d=abs(dot(n,normalize(vec3(.4,.55,.75))));float rim=pow(1.0-abs(n.z),2.0)*.15;gl_FragColor=vec4(vc*(.34+.66*d)+rim,1.0);}";
+const FS="precision mediump float;uniform float al;varying vec3 vc,vn;void main(){vec3 n=normalize(vn);float d=abs(dot(n,normalize(vec3(.4,.55,.75))));float rim=pow(1.0-abs(n.z),2.0)*.15;gl_FragColor=vec4((vc*(.34+.66*d)+rim)*al,al);}";
 function glInit(){
  const cv=$("hf"),g=cv.getContext("webgl2",{antialias:true})||cv.getContext("webgl",{antialias:true});if(!g)return;
  if(!(typeof WebGL2RenderingContext!=="undefined"&&g instanceof WebGL2RenderingContext)&&!g.getExtension("OES_element_index_uint"))return;
  const mk=(t,src)=>{const s=g.createShader(t);g.shaderSource(s,src);g.compileShader(s);return s},pr=g.createProgram();
  g.attachShader(pr,mk(g.VERTEX_SHADER,VS));g.attachShader(pr,mk(g.FRAGMENT_SHADER,FS));g.linkProgram(pr);
  if(!g.getProgramParameter(pr,g.LINK_STATUS))return;
- g.useProgram(pr);gl=g;GU={R:g.getUniformLocation(pr,"R"),f:g.getUniformLocation(pr,"f"),asp:g.getUniformLocation(pr,"asp")};
+ g.useProgram(pr);gl=g;GU={al:g.getUniformLocation(pr,"al"),R:g.getUniformLocation(pr,"R"),f:g.getUniformLocation(pr,"f"),asp:g.getUniformLocation(pr,"asp")};
  GB={pos:g.createBuffer(),nor:g.createBuffer(),col:g.createBuffer(),idx:g.createBuffer(),loc:{p:g.getAttribLocation(pr,"p"),n:g.getAttribLocation(pr,"n"),c:g.getAttribLocation(pr,"c")}};
- g.enable(g.DEPTH_TEST);
+ GB2={pos:g.createBuffer(),nor:g.createBuffer(),col:g.createBuffer(),idx:g.createBuffer()};g.enable(g.DEPTH_TEST);
 }
 function glUpload(){if(!gl||!GLM)return;
  [["pos","pos"],["nor","nor"],["col","col"]].forEach(([b,k])=>{gl.bindBuffer(gl.ARRAY_BUFFER,GB[b]);gl.bufferData(gl.ARRAY_BUFFER,GLM[k],gl.STATIC_DRAW)});
@@ -276,17 +286,18 @@ function hdraw(){
  const cv=$("hf"),dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;
  cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);
  const cy=Math.cos(yaw),sy=Math.sin(yaw),cx=Math.cos(pit),sx=Math.sin(pit);
- if(gl){gl.viewport(0,0,cv.width,cv.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);if(!GLM)return;
-  [["pos","p"],["nor","n"],["col","c"]].forEach(([b,a])=>{gl.bindBuffer(gl.ARRAY_BUFFER,GB[b]);gl.enableVertexAttribArray(GB.loc[a]);gl.vertexAttribPointer(GB.loc[a],3,gl.FLOAT,false,0,0)});
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,GB.idx);
+ if(gl){gl.viewport(0,0,cv.width,cv.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   gl.uniformMatrix3fv(GU.R,false,[cy,sy*sx,-sy*cx,0,cx,sx,sy,-cy*sx,cy*cx]);gl.uniform1f(GU.f,3.0*zoom);gl.uniform1f(GU.asp,w/h);
-  gl.drawElements(gl.TRIANGLES,GLM.idx.length,gl.UNSIGNED_INT,0);return}
+  const set=(B,M)=>{if(!M)return;[["pos","p"],["nor","n"],["col","c"]].forEach(([k,a])=>{gl.bindBuffer(gl.ARRAY_BUFFER,B[k]);gl.enableVertexAttribArray(GB.loc[a]);gl.vertexAttribPointer(GB.loc[a],3,gl.FLOAT,false,0,0)});gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,B.idx);gl.drawElements(gl.TRIANGLES,M.idx.length,gl.UNSIGNED_INT,0)};gl.uniform1f(GU.al,1);set(GB,GLM);gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.uniform1f(GU.al,.5);set(GB2,PRB);gl.disable(gl.BLEND);gl.enable(gl.DEPTH_TEST);gl.uniform1f(GU.al,1);set(GB2,PRB);return}
  const g=cv.getContext("2d"),R=Math.min(w,h)*.4*zoom,dark=matchMedia("(prefers-color-scheme:dark)").matches;g.scale(dpr,dpr);g.lineWidth=1.6;g.lineJoin="round";
  HF.forEach(f=>{g.strokeStyle=`hsl(${f.h} 70% ${dark?62:44}%)`;g.beginPath();
   f.pts.forEach((p,i)=>{const x1=p[0]*cy+p[2]*sy,z1=-p[0]*sy+p[2]*cy,y1=p[1]*cx-z1*sx,z2=p[1]*sx+z1*cx,k=3/(3+z2),X=w/2+x1*R*k,Y=h/2-y1*R*k;i?g.lineTo(X,Y):g.moveTo(X,Y)});g.closePath();g.stroke()});
+ const P2=p=>{const x1=p[0]*cy+p[2]*sy,z1=-p[0]*sy+p[2]*cx*0+(-p[0]*sy+p[2]*cy)*0+p[2]*cy-p[2]*cy,zz=-p[0]*sy+p[2]*cy,y1=p[1]*cx-zz*sx,z2=p[1]*sx+zz*cx,k=3/(3+z2);return[w/2+x1*R*k,h/2-y1*R*k,k]};
+ g.lineWidth=2.5;MB.forEach(([a,b,c])=>{const A=P2(a),B=P2(b);g.strokeStyle=rgbs(c);g.beginPath();g.moveTo(A[0],A[1]);g.lineTo(B[0],B[1]);g.stroke()});
+ MK.forEach(([q,r,c])=>{const A=P2(q);g.fillStyle=rgbs(c);g.strokeStyle=dark?"#fff":"#000";g.lineWidth=1;g.beginPath();g.arc(A[0],A[1],Math.max(3,r*R*A[2]*.85),0,6.2832);g.fill();g.stroke()});
 }
 function hupdate(){
- hdefs.forEach(([i,l,t,f])=>$(l).textContent=f(hv(i)));hopf();const sim=meshBuild();glUpload();hdraw();
+ hdefs.forEach(([i,l,t,f])=>$(l).textContent=f(hv(i)));hopf();$("rrv").textContent=hv("rr").toFixed(2);$("sinfo").textContent="Fibre length factor s = "+HF.s.toFixed(3)+" (set in Checks, Monge-Ampère)";$("sqv").textContent="s = "+HF.s.toFixed(3)+" at r = "+hv("rr").toFixed(2)+": the scene scales each Hopf fibre circle about its centre by s.";const sim=meshBuild();glUpload();probes();probeUpload();hdraw();
  const v=HF.length*hv("hM")*hv("hS"),kb=Math.round(v*58/1000),cur=[hv("hL"),hv("hN"),hv("hM"),hv("hS")].join();
  document.querySelectorAll("[data-p]").forEach(b=>b.setAttribute("aria-pressed",String(PRE[b.dataset.p].join()===cur)));
  const keys=new Set(HF.map(f=>FN[f.f][0]+f.l)),warn=[];
@@ -295,7 +306,7 @@ function hupdate(){
  if(HF.cull)warn.push(HF.cull+" fibres dropped near the projection point. Adjust outer reach or 4D roll to change which ones.");
  if(kb>50000)warn.push("Very large file. Lower the density before exporting.");
  if(sim)warn.push("Preview simplified: the scene shows "+(GLM.idx.length/6).toLocaleString()+" of "+v.toLocaleString()+" quads. The export is full resolution.");
- if(!gl)warn.push("No WebGL, so the preview shows centre lines only.");
+ if(!gl)warn.push("No WebGL, so the preview is a flat line drawing without shading or tube thickness.");
  $("hinfo").innerHTML=warn.map(w=>"<span>"+w+"</span>").join("");$("hx").disabled=!HF.length;
 }
 function buildObj(emit){
@@ -333,7 +344,32 @@ function spinLoop(){if(!$("spin").checked){raf=0;return}if(!ptr.size){yaw+=.006;
 $("spin").addEventListener("change",()=>{if($("spin").checked&&!raf)raf=requestAnimationFrame(spinLoop)});
 new ResizeObserver(hdraw).observe(hfc);
 matchMedia("(prefers-color-scheme:dark)").addEventListener("change",hupdate);
-glInit();syncRanges();hupdate();
+const PC={A:hsl(40,.9,.5),B:hsl(285,.65,.55),AB:hsl(145,.7,.42),BA:hsl(330,.8,.55),U:hsl(0,0,.55)},PN=[hsl(175,.6,.38),hsl(215,.7,.52),hsl(5,.75,.5)],rgbs=c=>"rgb("+c.map(v=>Math.round(v*255)).join(",")+")";
+const LG=[["A",PC.A],["B",PC.B],["A⊗B",PC.AB],["B⊗A",PC.BA],["u",PC.U],["linear",PN[0]],["modReLU",PN[1]],["split ReLU",PN[2]]].map(([n,c])=>`<span><i style="background:${rgbs(c)}"></i>${n}</span>`).join("");$("legend").innerHTML=LG;$("legend2").innerHTML="<span>Markers in the 3D scene:</span>"+LG;
+function circ(A,B,C){const sb=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],cr=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],d=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],a=sb(A,C),b=sb(B,C),ab=cr(a,b),k=2*d(ab,ab);if(k<1e-18)return C;
+ const w=cr([0,1,2].map(i=>d(a,a)*b[i]-d(b,b)*a[i]),ab);return[0,1,2].map(i=>C[i]+w[i]/k)}
+function fibreScale(){const kind=$("man").value,pr=parseFloat($("par").value),t=hv("rr")**2,h=t*1e-5,k=Kt(kind,pr,t),kk=(Kt(kind,pr,t+h)-Kt(kind,pr,t-h))/(2*h);return Math.sqrt(Math.max(0,1+t*kk/k))}
+function sph(c,r,col,P){const nu=10,nv=6,b0=P.pos.length/3;
+ for(let j=0;j<=nv;j++){const th=Math.PI*j/nv;for(let i=0;i<=nu;i++){const ph=2*Math.PI*i/nu,x=Math.sin(th)*Math.cos(ph),y=Math.cos(th),z=Math.sin(th)*Math.sin(ph);P.pos.push(c[0]+r*x,c[1]+r*y,c[2]+r*z);P.nor.push(x,y,z);P.col.push(col[0],col[1],col[2])}}
+ for(let j=0;j<nv;j++)for(let i=0;i<nu;i++){const a=b0+j*(nu+1)+i,b=a+nu+1;P.idx.push(a,b,a+1,a+1,b,b+1)}}
+function cyl(a,b,r,col,P){const d=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],L=Math.hypot(...d);if(L<1e-6)return;const T=d.map(v=>v/L),w=Math.abs(T[1])>.9?[1,0,0]:[0,1,0],dt=w[0]*T[0]+w[1]*T[1]+w[2]*T[2],n0=[0,1,2].map(i=>w[i]-dt*T[i]),nl=Math.hypot(...n0),n=n0.map(x=>x/nl),m=[T[1]*n[2]-T[2]*n[1],T[2]*n[0]-T[0]*n[2],T[0]*n[1]-T[1]*n[0]],S=8,b0=P.pos.length/3;
+ [a,b].forEach(e=>{for(let k=0;k<S;k++){const an=2*Math.PI*k/S,c=Math.cos(an),s=Math.sin(an),nn=[0,1,2].map(i=>c*n[i]+s*m[i]);P.pos.push(e[0]+r*nn[0],e[1]+r*nn[1],e[2]+r*nn[2]);P.nor.push(nn[0],nn[1],nn[2]);P.col.push(col[0],col[1],col[2])}});
+ for(let k=0;k<S;k++){const k2=(k+1)%S;P.idx.push(b0+k,b0+k2,b0+S+k2,b0+k,b0+S+k2,b0+S+k)}}
+function S(p,r,c,P){sph(p,r,c,P);MK.push([p,r,c])}
+function C(a,b,r,c,P){cyl(a,b,r,c,P);MB.push([a,b,c])}
+function probes(){PRB=null;MK=[];MB=[];if(!$("prb").checked)return;
+ const psi=hv("hP")*Math.PI/180,cp=Math.cos(psi),sp=Math.sin(psi),tf=HF.tf||{ctr:[0,0,0],sc:1},P={pos:[],nor:[],col:[],idx:[]},unit=q=>{const n=Math.hypot(...q);return n>1e-9?q.map(v=>v/n):null};
+ const pm=q=>{q=unit(q);if(!q)return null;const a=q[0]*cp-q[3]*sp,d=q[0]*sp+q[3]*cp,den=1-d;if(den<.1)return null;return[a/den,q[1]/den,q[2]/den].map((v,i)=>(v-tf.ctr[i])*tf.sc)};
+ const g=[[0,0,0,0],[0,0,0,0]];document.querySelectorAll("[data-q]").forEach(e=>{g[+e.dataset.q][+e.dataset.c]=parseFloat(e.value)||0});
+ const A=unit(g[0])||[1,0,0,0],B=unit(g[1])||[1,0,0,0];
+ [[A,PC.A],[B,PC.B],[H(A,B),PC.AB],[H(B,A),PC.BA]].forEach(([q,c])=>{const p=pm(q);if(p)S(p,.075,c,P)});
+ if(EQ){const p=pm(EQ.U);if(p)S(p,.06,PC.U,P);
+  EQ.pairs.forEach((e,i)=>{if(!e)return;const p1=pm(e.r),p2=pm(e.l);if(p1)S(p1,.075,PN[i],P);if(p2)S(p2,.04,PN[i].map(v=>Math.min(1,v*.55+.45)),P);if(p1&&p2)C(p1,p2,.014,PN[i],P)})}
+ PRB={pos:new Float32Array(P.pos),nor:new Float32Array(P.nor),col:new Float32Array(P.col),idx:new Uint32Array(P.idx)}}
+function probeUpload(){if(!gl||!PRB)return;[["pos","pos"],["nor","nor"],["col","col"]].forEach(([b,k])=>{gl.bindBuffer(gl.ARRAY_BUFFER,GB2[b]);gl.bufferData(gl.ARRAY_BUFFER,PRB[k],gl.STATIC_DRAW)});gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,GB2.idx);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,PRB.idx,gl.STATIC_DRAW)}
+function refreshProbes(){probes();probeUpload();hdraw()}
+$("prb").addEventListener("change",refreshProbes);
+glInit();syncRanges();hupdate();HREADY=true;
 </script>
 </body>
 </html>
