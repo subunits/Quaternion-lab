@@ -272,7 +272,7 @@ const FS="precision mediump float;uniform float al;varying vec3 vc,vn;void main(
 
 function glInit(){
  const cv=$("hf");
- const g=cv.getContext("webgl2",{antialias:true})||cv.getContext("webgl",{antialias:true});
+ const g=cv.getContext("webgl2",{antialias:true})||cv.getContext("webgl",{antialias:true})||cv.getContext("experimental-webgl",{antialias:true});
  if(!g)return;
  g.getExtension("OES_element_index_uint");
  gl=g;
@@ -281,7 +281,10 @@ function glInit(){
  gl.attachShader(pr,mk(gl.VERTEX_SHADER,VS));
  gl.attachShader(pr,mk(gl.FRAGMENT_SHADER,FS));
  gl.linkProgram(pr);
- if(!gl.getProgramParameter(pr,gl.LINK_STATUS)){gl=null;return;}
+ if(!gl.getProgramParameter(pr,gl.LINK_STATUS)){
+   console.error("Shader link failed:", gl.getProgramInfoLog(pr));
+   return;
+ }
  gl.useProgram(pr);
  GU={
   al:gl.getUniformLocation(pr,"al"),
@@ -372,7 +375,7 @@ function hupdate(){
  hopf();
  $("rrv").textContent=hv("rr").toFixed(2);
  $("sinfo").textContent="Fibre length factor s = "+HF.s.toFixed(3)+" (set in Checks, Monge-Ampère)";
- $("sqv").textContent="s = "+HF.s.toFixed(3)+" at r = "+hv("rr").toFixed(2)+": the scene scales each Hopf fibre circle about its centre by s.";
+ $("sqv").textContent="s = "+HF.s.toFixed(3)+" at r = "+hv("rr").toFixed(2)+": the scene scales each fibre circle about its centre by s.";
  const sim=meshBuild();
  glUpload();
  probes();
@@ -386,7 +389,7 @@ function hupdate(){
  if(HF.cull)warn.push(HF.cull+" fibres dropped near the projection point. Adjust outer reach or 4D roll to change which ones.");
  if(kb>50000)warn.push("Very large file. Lower the density before exporting.");
  if(sim)warn.push("Preview simplified: the scene shows "+(GLM.idx.length/6).toLocaleString()+" of "+v.toLocaleString()+" quads. The export is full resolution.");
- if(!gl)warn.push("No WebGL, so the preview failed to initialize.");
+ if(!gl)warn.push("WebGL failed to initialize.");
  $("hinfo").innerHTML=warn.map(w=>"<span>"+w+"</span>").join("");$("hx").disabled=!HF.length;
 }
 function buildObj(emit){
