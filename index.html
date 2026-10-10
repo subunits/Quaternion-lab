@@ -42,7 +42,7 @@ input[type=range]::-moz-range-thumb{box-sizing:border-box;width:16px;height:16px
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:4px 28px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{position:relative;cursor:pointer;--c:var(--acc)}
-.chip input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.chip input{position:absolute;top:0;left:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
 .chip span{display:inline-flex;align-items:center;min-height:38px;padding:0 16px;border:1.5px solid var(--c);border-radius:999px;color:var(--c);font-weight:600}
 .chip input:checked+span{background:var(--c);color:var(--on)}.chip input:checked+span::before{content:"✓ ";margin-right:.3em}
 .chip input:focus-visible+span{outline:2px solid var(--acc);outline-offset:2px}
@@ -60,16 +60,15 @@ summary::after{content:"+";font-size:1.3em;color:var(--mut);width:1em;text-align
 details>.body{padding:4px 0 20px}
 .ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}
 .cols{display:flex;flex-wrap:wrap;gap:12px clamp(20px,4vw,48px);align-items:flex-start}
-.col{flex:1 1 min(100%,22rem);min-width:0;container-type:inline-size}.col.wide{flex:2 1 min(100%,30rem)}
-.kv>div{display:flex;flex-wrap:wrap;gap:2px 14px;padding:6px 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:clamp(.78rem,.55rem + 1.6cqi,.95rem)}
+.col{flex:1 1 min(100%,22rem);min-width:0}.col.wide{flex:2 1 min(100%,30rem)}
+.kv>div{display:flex;flex-wrap:wrap;gap:2px 14px;padding:6px 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:clamp(.78rem,.6rem + .55vw,.95rem)}
 .kv b{font-weight:600;color:var(--mut);min-width:5.5em}.kv span{overflow-wrap:anywhere}
 .qrow{display:flex;gap:8px;margin:8px 0}.qrow b{flex:0 0 1.2em;padding-top:1.5rem;color:var(--mut)}
 .qrow label{display:flex;flex-direction:column;font-size:.8em;color:var(--mut);gap:2px}
-.qf{flex:1;min-width:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.eqr{display:grid;grid-template-columns:1fr auto auto;gap:2px 16px;padding:8px 0;border-bottom:1px solid var(--line)}.eqr .num{font-family:var(--mono)}
-@container (min-width:22rem){.qf{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@container (max-width:24rem){.kv>div{flex-direction:column;gap:0}}
-@container (max-width:28rem){.eqr{grid-template-columns:1fr auto}.eqr .nm{grid-column:1/-1}}
+.qf{flex:1;min-width:0;max-width:30rem;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.eqr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:2px 16px;padding:8px 0;border-bottom:1px solid var(--line)}.eqr .num{font-family:var(--mono)}
+@media (min-width:1100px){.qf{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:560px){.kv>div{flex-direction:column;gap:0}summary{flex-wrap:wrap;gap:0 10px;padding-block:8px}summary>span:first-child{flex:1}summary::after{order:2}summary .res{order:3;flex:1 0 100%;justify-content:flex-start;margin:0 0 4px}.eqr{grid-template-columns:1fr auto}.eqr .nm{grid-column:1/-1}}
 .key{display:flex;gap:18px;flex-wrap:wrap;font-size:.85em;margin-top:8px}.key i{display:inline-block;width:22px;border-top:3px solid;vertical-align:middle;margin-right:6px}
 #cv{width:100%;height:auto;aspect-ratio:16/10;min-height:220px;max-height:520px;display:block;margin-top:6px}
 @media (max-width:920px){
@@ -116,7 +115,7 @@ details>.body{padding:4px 0 20px}
 <details id="d1"><summary><span>Hamilton product</span><span class="res" id="r1"></span></summary><div class="body"><div class="cols"><div class="col"><div id="qin"></div><div class="kv" id="qout"></div></div><div class="col"><p class="note" style="margin-top:0">Defining relations</p><div class="kv" id="rel"></div></div></div></div></details>
 <details id="d2"><summary><span>Equivariance under u⊗x</span><span class="res" id="r2"></span></summary><div class="body"><p class="spec">Does f(u⊗x) equal u⊗f(x)? A right-multiplying layer keeps it, and so does a norm-based activation. A componentwise ReLU breaks it. Errors are ‖f(u⊗x) − u⊗f(x)‖ on random inputs.</p><div class="cols"><div class="col">
 <div class="ctl"><label for="conv">Layer computes</label><select id="conv"><option value="R">x ⊗ W</option><option value="L">W ⊗ x</option></select></div>
-<div class="ctl"><label for="u0">u<sub>r</sub></label><output id="ul0"></output><input type="range" id="u0" min="-1" max="1" step="0.01" value="0.7"></div><div class="ctl"><label for="u1">u<sub>i</sub></label><output id="ul1"></output><input type="range" id="u1" min="-1" max="1" step="0.01" value="0.3"></div><div class="ctl"><label for="u2">u<sub>j</sub></label><output id="ul2"></output><input type="range" id="u2" min="-1" max="1" step="0.01" value="-0.5"></div><div class="ctl"><label for="u3">u<sub>k</sub></label><output id="ul3"></output><input type="range" id="u3" min="-1" max="1" step="0.01" value="0.4"></div>
+<div class="grid"><div class="ctl"><label for="u0">u<sub>r</sub></label><output id="ul0"></output><input type="range" id="u0" min="-1" max="1" step="0.01" value="0.7"></div><div class="ctl"><label for="u1">u<sub>i</sub></label><output id="ul1"></output><input type="range" id="u1" min="-1" max="1" step="0.01" value="0.3"></div><div class="ctl"><label for="u2">u<sub>j</sub></label><output id="ul2"></output><input type="range" id="u2" min="-1" max="1" step="0.01" value="-0.5"></div><div class="ctl"><label for="u3">u<sub>k</sub></label><output id="ul3"></output><input type="range" id="u3" min="-1" max="1" step="0.01" value="0.4"></div></div>
 <button id="reroll" style="margin-top:8px">New random weights</button><p class="note" id="uinfo"></p></div><div class="col"><div id="eq"></div></div></div></div></details>
 <details id="d3"><summary><span>Monge-Ampère on ℂ²</span><span class="res" id="r3"></span></summary><div class="body"><p class="spec">For a Kähler potential K(t) with t = r² = |z₁|² + |z₂|², the determinant is K′(K′ + tK″), and a Ricci-flat metric needs it constant. The legacy engine took a 1×1 Hessian in r instead, which is just φ″(r), and never compared it to anything.</p><div class="cols"><div class="col">
 <div class="ctl"><label for="man">Potential</label><select id="man"><option value="eh">Eguchi-Hanson</option><option value="tn">Taub-NUT (as in the legacy file)</option></select></div>
