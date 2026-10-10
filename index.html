@@ -269,82 +269,115 @@ function meshBuild(){
 }
 const VS="attribute vec3 p;attribute vec3 n;attribute vec3 c;uniform mat3 R;uniform float f,asp;varying vec3 vc,vn;void main(){vec3 q=R*p;vn=R*n;vc=c;float w=4.2+q.z;gl_Position=vec4(q.x*f/asp,q.y*f,w*1.0100503-0.201005,w);}";
 const FS="precision mediump float;uniform float al;varying vec3 vc,vn;void main(){vec3 n=normalize(vn);float d=abs(dot(n,normalize(vec3(.4,.55,.75))));float rim=pow(1.0-abs(n.z),2.0)*.15;gl_FragColor=vec4((vc*(.34+.66*d)+rim)*al,al);}";
-function glInit(){
- const cv = $("hf");
- let g = cv.getContext("webgl2", { antialias: true });
- 
- if (g) {
-   gl = g;
- } else {
-   g = cv.getContext("webgl", { antialias: true });
-   if (!g) return;
-   const ext = g.getExtension("OES_element_index_uint");
-   if (!ext) {
-     console.warn("OES_element_index_uint not supported. WebGL 3D view disabled, falling back to 2D.");
-     return;
-   }
-   gl = g;
- }
 
- const mk = (t, src) => {
-   const s = gl.createShader(t);
-   gl.shaderSource(s, src);
-   gl.compileShader(s);
-   return s;
- };
- 
- const pr = gl.createProgram();
- gl.attachShader(pr, mk(gl.VERTEX_SHADER, VS));
- gl.attachShader(pr, mk(gl.FRAGMENT_SHADER, FS));
+function glInit(){
+ const cv=$("hf");
+ const g=cv.getContext("webgl2",{antialias:true})||cv.getContext("webgl",{antialias:true});
+ if(!g)return;
+ g.getExtension("OES_element_index_uint");
+ gl=g;
+ const mk=(t,src)=>{const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);return s};
+ const pr=gl.createProgram();
+ gl.attachShader(pr,mk(gl.VERTEX_SHADER,VS));
+ gl.attachShader(pr,mk(gl.FRAGMENT_SHADER,FS));
  gl.linkProgram(pr);
- 
- if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return;
- 
+ if(!gl.getProgramParameter(pr,gl.LINK_STATUS)){gl=null;return;}
  gl.useProgram(pr);
- GU = {
-   al: gl.getUniformLocation(pr, "al"),
-   R: gl.getUniformLocation(pr, "R"),
-   f: gl.getUniformLocation(pr, "f"),
-   asp: gl.getUniformLocation(pr, "asp")
+ GU={
+  al:gl.getUniformLocation(pr,"al"),
+  R:gl.getUniformLocation(pr,"R"),
+  f:gl.getUniformLocation(pr,"f"),
+  asp:gl.getUniformLocation(pr,"asp")
  };
- GB = {
-   pos: gl.createBuffer(),
-   nor: gl.createBuffer(),
-   col: gl.createBuffer(),
-   idx: gl.createBuffer(),
-   loc: {
-     p: gl.getAttribLocation(pr, "p"),
-     n: gl.getAttribLocation(pr, "n"),
-     c: gl.getAttribLocation(pr, "c")
-   }
+ GB={
+  pos:gl.createBuffer(),
+  nor:gl.createBuffer(),
+  col:gl.createBuffer(),
+  idx:gl.createBuffer(),
+  loc:{p:gl.getAttribLocation(pr,"p"),n:gl.getAttribLocation(pr,"n"),c:gl.getAttribLocation(pr,"c")}
  };
- GB2 = {
-   pos: gl.createBuffer(),
-   nor: gl.createBuffer(),
-   col: gl.createBuffer(),
-   idx: gl.createBuffer()
+ GB2={
+  pos:gl.createBuffer(),
+  nor:gl.createBuffer(),
+  col:gl.createBuffer(),
+  idx:gl.createBuffer()
  };
  gl.enable(gl.DEPTH_TEST);
 }
-function glUpload(){if(!gl||!GLM)return;
- [["pos","pos"],["nor","nor"],["col","col"]].forEach(([b,k])=>{gl.bindBuffer(gl.ARRAY_BUFFER,GB[b]);gl.bufferData(gl.ARRAY_BUFFER,GLM[k],gl.STATIC_DRAW)});
- gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,GB.idx);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,GLM.idx,gl.STATIC_DRAW)}
+
+function glUpload(){
+ if(!gl||!GLM)return;
+ [["pos","pos"],["nor","nor"],["col","col"]].forEach(([b,k])=>{
+  gl.bindBuffer(gl.ARRAY_BUFFER,GB[b]);
+  gl.bufferData(gl.ARRAY_BUFFER,GLM[k],gl.STATIC_DRAW);
+ });
+ gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,GB.idx);
+ gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,GLM.idx,gl.STATIC_DRAW);
+}
+
+function probeUpload(){
+ if(!gl||!PRB)return;
+ [["pos","pos"],["nor","nor"],["col","col"]].forEach(([b,k])=>{
+  gl.bindBuffer(gl.ARRAY_BUFFER,GB2[b]);
+  gl.bufferData(gl.ARRAY_BUFFER,PRB[k],gl.STATIC_DRAW);
+ });
+ gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,GB2.idx);
+ gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,PRB.idx,gl.STATIC_DRAW);
+}
+
 function hdraw(){
  const cv=$("hf"),dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;
  cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);
  const cy=Math.cos(yaw),sy=Math.sin(yaw),cx=Math.cos(pit),sx=Math.sin(pit);
- if(gl){gl.viewport(0,0,cv.width,cv.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
-  gl.uniformMatrix3fv(GU.R,false,[cy,sy*sx,-sy*cx,0,cx,sx,sy,-cy*sx,cy*cx]);gl.uniform1f(GU.f,3.0*zoom);gl.uniform1f(GU.asp,w/h);
-  const set=(B,M)=>{if(!M)return;[["pos","p"],["nor","n"],["col","c"]].forEach(([k,a])=>{gl.bindBuffer(gl.ARRAY_BUFFER,B[k]);gl.enableVertexAttribArray(GB.loc[a]);gl.vertexAttribPointer(GB.loc[a],3,gl.FLOAT,false,0,0)});gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,B.idx);gl.drawElements(gl.TRIANGLES,M.idx.length,gl.UNSIGNED_INT,0)};gl.uniform1f(GU.al,1);set(GB,GLM);gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.uniform1f(GU.al,.5);set(GB2,PRB);gl.disable(gl.BLEND);gl.enable(gl.DEPTH_TEST);gl.uniform1f(GU.al,1);set(GB2,PRB);return}
- const g=cv.getContext("2d"),R=Math.min(w,h)*.4*zoom,dark=matchMedia("(prefers-color-scheme:dark)").matches;g.scale(dpr,dpr);g.lineWidth=1.6;g.lineJoin="round";
- HF.forEach(f=>{g.strokeStyle=`hsl(${f.h} 70% ${dark?62:44}%)`;g.beginPath();
-  f.pts.forEach((p,i)=>{const x1=p[0]*cy+p[2]*sy,z1=-p[0]*sy+p[2]*cy,y1=p[1]*cx-z1*sx,z2=p[1]*sx+z1*cx,k=3/(3+z2),X=w/2+x1*R*k,Y=h/2-y1*R*k;i?g.lineTo(X,Y):g.moveTo(X,Y)});g.closePath();g.stroke()});
- const P2=p=>{const x1=p[0]*cy+p[2]*sy,z1=-p[0]*sy+p[2]*cx*0+(-p[0]*sy+p[2]*cy)*0+p[2]*cy-p[2]*cy,zz=-p[0]*sy+p[2]*cy,y1=p[1]*cx-zz*sx,z2=p[1]*sx+zz*cx,k=3/(3+z2);return[w/2+x1*R*k,h/2-y1*R*k,k]};
- g.lineWidth=2.5;MB.forEach(([a,b,c])=>{const A=P2(a),B=P2(b);g.strokeStyle=rgbs(c);g.beginPath();g.moveTo(A[0],A[1]);g.lineTo(B[0],B[1]);g.stroke()});
- MK.forEach(([q,r,c])=>{const A=P2(q);g.fillStyle=rgbs(c);g.strokeStyle=dark?"#fff":"#000";g.lineWidth=1;g.beginPath();g.arc(A[0],A[1],Math.max(3,r*R*A[2]*.85),0,6.2832);g.fill();g.stroke()});
+ 
+ if(gl){
+  gl.viewport(0,0,cv.width,cv.height);
+  gl.clearColor(0,0,0,0);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.uniformMatrix3fv(GU.R,false,[cy,sy*sx,-sy*cx,0,cx,sx,sy,-cy*sx,cy*cx]);
+  gl.uniform1f(GU.f,3.0*zoom);
+  gl.uniform1f(GU.asp,w/h);
+  
+  const set=(B,M)=>{
+   if(!M || !M.idx)return;
+   [["pos","p"],["nor","n"],["col","c"]].forEach(([k,a])=>{
+    gl.bindBuffer(gl.ARRAY_BUFFER,B[k]);
+    gl.enableVertexAttribArray(GB.loc[a]);
+    gl.vertexAttribPointer(GB.loc[a],3,gl.FLOAT,false,0,0);
+   });
+   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,B.idx);
+   gl.drawElements(gl.TRIANGLES,M.idx.length,gl.UNSIGNED_INT,0);
+  };
+  
+  if(GLM){
+   gl.uniform1f(GU.al,1);
+   set(GB,GLM);
+  }
+  if(PRB){
+   gl.disable(gl.DEPTH_TEST);
+   gl.enable(gl.BLEND);
+   gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+   gl.uniform1f(GU.al,.5);
+   set(GB2,PRB);
+   gl.disable(gl.BLEND);
+   gl.enable(gl.DEPTH_TEST);
+   gl.uniform1f(GU.al,1);
+   set(GB2,PRB);
+  }
+ }
 }
+
 function hupdate(){
- hdefs.forEach(([i,l,t,f])=>$(l).textContent=f(hv(i)));hopf();$("rrv").textContent=hv("rr").toFixed(2);$("sinfo").textContent="Fibre length factor s = "+HF.s.toFixed(3)+" (set in Checks, Monge-Ampère)";$("sqv").textContent="s = "+HF.s.toFixed(3)+" at r = "+hv("rr").toFixed(2)+": the scene scales each Hopf fibre circle about its centre by s.";const sim=meshBuild();glUpload();probes();probeUpload();hdraw();
+ hdefs.forEach(([i,l,t,f])=>$(l).textContent=f(hv(i)));
+ hopf();
+ $("rrv").textContent=hv("rr").toFixed(2);
+ $("sinfo").textContent="Fibre length factor s = "+HF.s.toFixed(3)+" (set in Checks, Monge-Ampère)";
+ $("sqv").textContent="s = "+HF.s.toFixed(3)+" at r = "+hv("rr").toFixed(2)+": the scene scales each Hopf fibre circle about its centre by s.";
+ const sim=meshBuild();
+ glUpload();
+ probes();
+ probeUpload();
+ hdraw();
  const v=HF.length*hv("hM")*hv("hS"),kb=Math.round(v*58/1000),cur=[hv("hL"),hv("hN"),hv("hM"),hv("hS")].join();
  document.querySelectorAll("[data-p]").forEach(b=>b.setAttribute("aria-pressed",String(PRE[b.dataset.p].join()===cur)));
  const keys=new Set(HF.map(f=>FN[f.f][0]+f.l)),warn=[];
@@ -353,7 +386,7 @@ function hupdate(){
  if(HF.cull)warn.push(HF.cull+" fibres dropped near the projection point. Adjust outer reach or 4D roll to change which ones.");
  if(kb>50000)warn.push("Very large file. Lower the density before exporting.");
  if(sim)warn.push("Preview simplified: the scene shows "+(GLM.idx.length/6).toLocaleString()+" of "+v.toLocaleString()+" quads. The export is full resolution.");
- if(!gl)warn.push("No WebGL, so the preview is a flat line drawing without shading or tube thickness.");
+ if(!gl)warn.push("No WebGL, so the preview failed to initialize.");
  $("hinfo").innerHTML=warn.map(w=>"<span>"+w+"</span>").join("");$("hx").disabled=!HF.length;
 }
 function buildObj(emit){
@@ -413,7 +446,6 @@ function probes(){PRB=null;MK=[];MB=[];if(!$("prb").checked)return;
  if(EQ){const p=pm(EQ.U);if(p)S(p,.06,PC.U,P);
   EQ.pairs.forEach((e,i)=>{if(!e)return;const p1=pm(e.r),p2=pm(e.l);if(p1)S(p1,.075,PN[i],P);if(p2)S(p2,.04,PN[i].map(v=>Math.min(1,v*.55+.45)),P);if(p1&&p2)C(p1,p2,.014,PN[i],P)})}
  PRB={pos:new Float32Array(P.pos),nor:new Float32Array(P.nor),col:new Float32Array(P.col),idx:new Uint32Array(P.idx)}}
-function probeUpload(){if(!gl||!PRB)return;[["pos","pos"],["nor","nor"],["col","col"]].forEach(([b,k])=>{gl.bindBuffer(gl.ARRAY_BUFFER,GB2[b]);gl.bufferData(gl.ARRAY_BUFFER,PRB[k],gl.STATIC_DRAW)});gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,GB2.idx);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,PRB.idx,gl.STATIC_DRAW)}
 function refreshProbes(){probes();probeUpload();hdraw()}
 $("prb").addEventListener("change",refreshProbes);
 glInit();syncRanges();hupdate();HREADY=true;
