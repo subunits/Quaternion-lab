@@ -290,23 +290,31 @@ function hupdate(){
  const v=HF.length*hv("hM")*hv("hS"),kb=Math.round(v*58/1000),cur=[hv("hL"),hv("hN"),hv("hM"),hv("hS")].join();
  document.querySelectorAll("[data-p]").forEach(b=>b.setAttribute("aria-pressed",String(PRE[b.dataset.p].join()===cur)));
  const keys=new Set(HF.map(f=>FN[f.f][0]+f.l)),warn=[];
- $("stF").textContent=HF.length;$("stQ").textContent=v.toLocaleString();$("stS").textContent=kb>=1000?(kb/1000).toFixed(1)+" MB":kb+" KB";$("stG").textContent=keys.size;
+ $("stF").textContent=HF.length;$("stQ").textContent=v.toLocaleString();$("stS").textContent="≈"+fmtSize(kb*1000);$("stS").title="Estimate; the exact size appears when the controls settle";szSchedule(v);$("stG").textContent=keys.size;
  if(!HF.length)warn.push("Nothing to export. Turn on at least one fibration.");
  if(HF.cull)warn.push(HF.cull+" fibres dropped near the projection point. Adjust outer reach or 4D roll to change which ones.");
  if(kb>50000)warn.push("Very large file. Lower the density before exporting.");
- if(sim)warn.push("Preview simplified; the export is full resolution.");
+ if(sim)warn.push("Preview simplified: the scene shows "+(GLM.idx.length/6).toLocaleString()+" of "+v.toLocaleString()+" quads. The export is full resolution.");
  if(!gl)warn.push("No WebGL, so the preview shows centre lines only.");
  $("hinfo").innerHTML=warn.map(w=>"<span>"+w+"</span>").join("");$("hx").disabled=!HF.length;
 }
-function exportObj(){
- const r=hv("hR"),S=hv("hS"),out=["# Hopf fibres of S^3 (I, J, K fibrations), stereographic projection; one group per fibration and ring.","# Centred at the origin; centre lines span -1 to 1 before tube thickness."];let off=0,grp="";
+function buildObj(emit){
+ const r=hv("hR"),S=hv("hS");let off=0,grp="";
+ emit("# Hopf fibres of S^3 (I, J, K fibrations), stereographic projection; one group per fibration and ring.");emit("# Centred at the origin; centre lines span -1 to 1 before tube thickness.");
  HF.forEach(f=>{const{V,F}=tube(f.pts,r,S);
-  const key=FN[f.f][0]+"_ring_"+String(f.l+1).padStart(2,"0");if(key!==grp){grp=key;out.push("g "+key)}
-  V.forEach(v=>out.push("v "+v.map(x=>x.toFixed(6)).join(" ")));
-  F.forEach(q=>out.push("f "+q.map(i=>i+off+1).join(" ")));off+=V.length});
+  const key=FN[f.f][0]+"_ring_"+String(f.l+1).padStart(2,"0");if(key!==grp){grp=key;emit("g "+key)}
+  V.forEach(v=>emit("v "+v.map(x=>x.toFixed(6)).join(" ")));
+  F.forEach(q=>emit("f "+q.map(i=>i+off+1).join(" ")));off+=V.length});
+}
+function exportObj(){
+ const out=[];buildObj(l=>out.push(l));
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out.join("\n")+"\n"],{type:"text/plain"}));a.download="hopf_fibres.obj";
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
 }
+let szT=0;
+const fmtSize=by=>by>=1e6?(by/1e6).toFixed(1)+" MB":Math.round(by/1e3)+" KB";
+function szSchedule(v){clearTimeout(szT);if(!HF.length||v>350000)return;
+ szT=setTimeout(()=>{let n=0;buildObj(l=>{n+=l.length+1});$("stS").textContent=fmtSize(n);$("stS").title=n.toLocaleString()+" bytes (exact)"},220)}
 function syncRanges(){document.querySelectorAll("input[type=range]").forEach(r=>r.style.setProperty("--p",(r.value-r.min)/(r.max-r.min)*100+"%"))}
 function resetView(){yaw=.6;pit=.4;zoom=1;hdraw()}
 const hfc=$("hf"),pinch=()=>{if(ptr.size<2)return 0;const [a,b]=[...ptr.values()];return Math.hypot(a[0]-b[0],a[1]-b[1])};
