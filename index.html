@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quaternion lab</title>
 <style>
-:root{--bg:#f2f4f8;--card:#fff;--ink:#1b2236;--mut:#5d6679;--line:#d5dae5;--ok:#0e7c70;--bad:#c8244f;--leg:#6a56d6;--font:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12161f;--card:#1a2030;--ink:#e6e9f2;--mut:#98a1b8;--line:#2b3348;--ok:#3dc9b4;--bad:#ff6b8b;--leg:#a396ff}}
+:root{--bg:#f2f4f8;--card:#fff;--ink:#1b2236;--mut:#5d6679;--line:#d5dae5;--ok:#0e7c70;--bad:#c8244f;--leg:#6a56d6;--blu:#2b59c3;--gold:#96590a;--on:#fff;--sh:0 1px 2px rgba(20,30,60,.06),0 10px 28px -14px rgba(20,30,60,.16);--font:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12161f;--card:#1a2030;--ink:#e6e9f2;--mut:#98a1b8;--line:#2b3348;--ok:#3dc9b4;--bad:#ff6b8b;--leg:#a396ff;--blu:#8fb0ff;--gold:#e9b44c;--on:#10131c;--sh:0 10px 28px -14px rgba(0,0,0,.6)}}
 *{box-sizing:border-box}
 html{scroll-padding-top:12px;-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:clamp(16px,.9rem + .25vw,18px)/1.55 var(--font)}
@@ -15,16 +15,25 @@ h1{font-size:clamp(1.6rem,1.2rem + 1.6vw,2.4rem);line-height:1.15;margin:0 0 6px
 h2{font-size:1.3rem;margin:0 0 4px}
 p{margin:.4em 0;max-width:68ch}
 .lede{color:var(--mut)}
-section{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:4px;padding:clamp(14px,2.4vw,26px);margin:clamp(18px,3vw,30px) 0}
-section.geo{border-left-color:var(--leg)}
+section{--ac:var(--ok);background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ac);border-radius:8px;box-shadow:var(--sh);padding:clamp(14px,2.4vw,26px);margin:clamp(18px,3vw,30px) 0}
+#equiv{--ac:var(--blu)}#ma{--ac:var(--leg)}#hopf{--ac:var(--gold)}
+h2::before{content:"";display:inline-block;width:.5em;height:.5em;border-radius:50%;background:var(--ac);margin-right:.55em;vertical-align:.1em}
 .note{color:var(--mut);font-size:.9rem}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,9.5rem),1fr));gap:12px 16px;align-items:end;margin:12px 0}
 label{display:flex;flex-direction:column;font-size:.85rem;color:var(--mut);gap:3px}
 input,select,button{font:inherit;font-size:16px;min-height:40px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:5px 8px}
 input[type=number]{width:100%;min-width:0;font-family:var(--mono)}
 input[type=range]{padding:0;width:100%;min-height:32px}
-button{cursor:pointer}
-:is(input,select,button):focus-visible{outline:2px solid var(--leg);outline-offset:2px}
+input,select{border-radius:6px}
+input[type=range],input[type=checkbox]{accent-color:var(--ac)}
+input[type=number]:focus,select:focus{border-color:var(--ac)}
+select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 17px) 55%,calc(100% - 12px) 55%;background-size:5px 5px;background-repeat:no-repeat}
+button{cursor:pointer;background:var(--ac);color:var(--on);border-color:var(--ac);border-radius:6px;font-weight:600;padding:8px 18px;transition:filter .15s,transform .05s}
+.row>button{grid-column:1/-1;justify-self:start}
+button:hover{filter:brightness(1.1)}
+button:active{transform:translateY(1px)}
+label>span{color:var(--ink);font-variant-numeric:tabular-nums}
+:is(input,select,button):focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 .cols{display:flex;flex-wrap:wrap;gap:12px clamp(20px,4vw,48px);align-items:flex-start}
 .col{flex:1 1 min(100%,22rem);min-width:0;container-type:inline-size}.col.wide{flex:2 1 min(100%,30rem)}
 .kv>div{display:flex;flex-wrap:wrap;gap:2px 14px;padding:6px 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:clamp(.78rem,.55rem + 1.6cqi,.95rem)}
@@ -47,7 +56,7 @@ canvas{width:100%;height:auto;aspect-ratio:16/10;min-height:240px;max-height:560
 <body>
 <main>
 <h1>Quaternion lab</h1>
-<p class="lede">Three live checks, written from scratch and independent of the legacy repos: the quaternion algebra, the one symmetry quaternion layers really have, and what the Monge-Ampère test says about Eguchi-Hanson and Taub-NUT.</p>
+<p class="lede">Four live pieces, written from scratch and independent of the legacy repos: the quaternion algebra, the one symmetry quaternion layers really have, what the Monge-Ampère test says about Eguchi-Hanson and Taub-NUT, and Hopf fibres you can export as an OBJ.</p>
 
 <section id="algebra">
 <h2>Hamilton product</h2>
@@ -93,6 +102,32 @@ canvas{width:100%;height:auto;aspect-ratio:16/10;min-height:240px;max-height:560
 <div class="key"><span><i style="border-color:var(--ok)"></i>correct determinant</span><span><i style="border-color:var(--leg);border-top-style:dashed"></i>legacy φ″(r)</span></div>
 <canvas id="cv" role="img" aria-label="Plot of the correct Monge-Ampère determinant and the legacy second derivative against r"></canvas>
 </div>
+</div>
+</section>
+<section id="hopf">
+<h2>Hopf fibres to OBJ</h2>
+<p>Choosing an imaginary unit u splits the 3-sphere into circles q ↦ e^{ut}q, a Hopf fibration. The units i, j and k give three fibrations, one for each of the hyperkähler triple's complex structures I, J, K, and every point lies on exactly one circle of each. Projected stereographically into 3D, the circles become interlocking rings. The export turns each ring into a closed quad tube, with one OBJ group per fibration and ring (I_ring_01, J_ring_01, K_ring_01, …), and scales the form to fit between −1 and 1 on every axis, centred at the origin.</p>
+<div class="cols">
+<div class="col">
+<div class="row" style="grid-template-columns:repeat(3,auto);justify-content:start;gap:8px 22px">
+<label style="flex-direction:row;align-items:center;gap:7px;color:var(--ink)"><input type="checkbox" id="fI" checked style="width:auto;min-height:0"><b style="color:hsl(20 75% 50%)">I</b></label>
+<label style="flex-direction:row;align-items:center;gap:7px;color:var(--ink)"><input type="checkbox" id="fJ" checked style="width:auto;min-height:0"><b style="color:hsl(140 60% 38%)">J</b></label>
+<label style="flex-direction:row;align-items:center;gap:7px;color:var(--ink)"><input type="checkbox" id="fK" checked style="width:auto;min-height:0"><b style="color:hsl(230 65% 58%)">K</b></label>
+</div>
+<div class="row">
+<label><span id="hl"></span><input type="range" id="hL" min="1" max="8" step="1" value="3"></label>
+<label><span id="hn"></span><input type="range" id="hN" min="3" max="32" step="1" value="8"></label>
+<label><span id="he"></span><input type="range" id="hE" min="0.3" max="0.8" step="0.01" value="0.6"></label>
+<label><span id="hs"></span><input type="range" id="hP" min="0" max="90" step="1" value="0"></label>
+<label><span id="hr"></span><input type="range" id="hR" min="0.004" max="0.06" step="0.002" value="0.02"></label>
+<label><span id="hq"></span><input type="range" id="hS" min="4" max="24" step="1" value="8"></label>
+<label><span id="hm"></span><input type="range" id="hM" min="32" max="256" step="8" value="80"></label>
+</div>
+<button id="hx">Download OBJ</button>
+<p class="note" id="hinfo"></p>
+<p class="note">Drag the preview to rotate it. Fibres that pass too close to the projection point would become enormous, so they are dropped and counted above.</p>
+</div>
+<div class="col wide"><canvas id="hf" role="img" aria-label="Preview of Hopf fibres as interlocking rings"></canvas></div>
 </div>
 </section>
 </main>
@@ -181,6 +216,68 @@ $("man").addEventListener("change",()=>{$("par").value=1;drawMA()});
 new ResizeObserver(drawMA).observe($("cv"));
 matchMedia("(prefers-color-scheme:dark)").addEventListener("change",drawMA);
 reroll();drawMA();
+/* ---------- Hopf fibres ---------- */
+const hv=id=>parseFloat($(id).value);
+const hdefs=[["hL","hl","Rings of fibres: ",v=>v],["hN","hn","Fibres per ring: ",v=>v],["hE","he","Outer ring reaches: ",v=>v.toFixed(2)+"π"],["hP","hs","4D roll: ",v=>v+"°"],["hR","hr","Tube radius: ",v=>v.toFixed(3)],["hS","hq","Tube sides: ",v=>v],["hM","hm","Points per fibre: ",v=>v]];
+const QP=[null,[Math.SQRT1_2,0,0,Math.SQRT1_2],[Math.SQRT1_2,0,-Math.SQRT1_2,0]],FN=[["I","fI",20],["J","fJ",140],["K","fK",230]];
+let HF=[],yaw=.6,pit=.4,drag=null;
+function hopf(){
+ const L=hv("hL"),Nn=hv("hN"),M=hv("hM"),E=hv("hE"),psi=hv("hP")*Math.PI/180,cp=Math.cos(psi),sp=Math.sin(psi),raw=[];let cull=0;
+ for(let f=0;f<3;f++){if(!$(FN[f][1]).checked)continue;
+ for(let l=0;l<L;l++){const eta=Math.PI*(.1+(E-.1)*(l+.5)/L),c=Math.cos(eta/2),sn=Math.sin(eta/2);
+  for(let j=0;j<Nn;j++){const ph=2*Math.PI*(j+(l%2)*.5)/Nn,pts=[];let ok=true;
+   for(let m=0;m<M;m++){const t=2*Math.PI*m/M;let q=[c*Math.cos(t),c*Math.sin(t),sn*Math.cos(ph+t),sn*Math.sin(ph+t)];
+    if(QP[f])q=H(QP[f],q);
+    const a=q[0]*cp-q[3]*sp,d=q[0]*sp+q[3]*cp,den=1-d;if(den<.1){ok=false;break}
+    pts.push([a/den,q[1]/den,q[2]/den])}
+   if(ok)raw.push({pts,l,f,h:FN[f][2]+ph/(2*Math.PI)*40});else cull++}}}
+ const lo=[1e9,1e9,1e9],hi=[-1e9,-1e9,-1e9];
+ raw.forEach(f=>f.pts.forEach(p=>p.forEach((v,i)=>{lo[i]=Math.min(lo[i],v);hi[i]=Math.max(hi[i],v)})));
+ const ctr=lo.map((v,i)=>(v+hi[i])/2),sc=raw.length?1/Math.max(...hi.map((v,i)=>(v-lo[i])/2),1e-9):1;
+ raw.forEach(f=>f.pts=f.pts.map(p=>p.map((v,i)=>(v-ctr[i])*sc)));
+ HF=raw;HF.cull=cull;
+}
+function hdraw(){
+ const cv=$("hf"),dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;cv.width=w*dpr;cv.height=h*dpr;
+ const g=cv.getContext("2d");g.scale(dpr,dpr);g.clearRect(0,0,w,h);
+ const cy=Math.cos(yaw),sy=Math.sin(yaw),cx=Math.cos(pit),sx=Math.sin(pit),R=Math.min(w,h)*.4,dark=matchMedia("(prefers-color-scheme:dark)").matches;
+ g.lineWidth=1.6;g.lineJoin="round";
+ HF.forEach(f=>{g.strokeStyle=`hsl(${f.h} 70% ${dark?62:44}%)`;g.beginPath();
+  f.pts.forEach((p,i)=>{const x1=p[0]*cy+p[2]*sy,z1=-p[0]*sy+p[2]*cy,y1=p[1]*cx-z1*sx,z2=p[1]*sx+z1*cx,k=3/(3+z2),X=w/2+x1*R*k,Y=h/2-y1*R*k;i?g.lineTo(X,Y):g.moveTo(X,Y)});g.closePath();g.stroke()});
+}
+function hupdate(){
+ hdefs.forEach(([i,l,t,f])=>$(l).textContent=t+f(hv(i)));hopf();hdraw();
+ const v=HF.length*hv("hM")*hv("hS");
+ $("hinfo").textContent=`${HF.length} fibres${HF.cull?` (${HF.cull} dropped near the projection point)`:""} · ${v.toLocaleString()} vertices · ${v.toLocaleString()} quads · about ${Math.round(v*58/1000).toLocaleString()} KB`;
+}
+function tube(P,r,S){
+ const N=P.length,sub=(a,b)=>a.map((v,i)=>v-b[i]),dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],nz=a=>{const l=Math.hypot(...a)||1;return a.map(v=>v/l)},
+ cr=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],V=[],F=[];let n=null;
+ for(let i=0;i<N;i++){const T=nz(sub(P[(i+1)%N],P[(i+N-1)%N]));
+  if(!n){const v=Math.abs(T[1])>.9?[1,0,0]:[0,1,0];n=nz(sub(v,T.map(x=>x*dot(v,T))))}else n=nz(sub(n,T.map(x=>x*dot(n,T))));
+  const b=cr(T,n);
+  for(let k=0;k<S;k++){const a=2*Math.PI*k/S,c=Math.cos(a),sn=Math.sin(a);V.push([0,1,2].map(q=>P[i][q]+r*(c*n[q]+sn*b[q])))}}
+ for(let i=0;i<N;i++)for(let k=0;k<S;k++){const i2=(i+1)%N,k2=(k+1)%S;F.push([i*S+k,i*S+k2,i2*S+k2,i2*S+k])}
+ return{V,F};
+}
+function exportObj(){
+ const r=hv("hR"),S=hv("hS"),out=["# Hopf fibres of S^3 (I, J, K fibrations), stereographic projection; one group per fibration and ring.","# Centred at the origin; centre lines span -1 to 1 before tube thickness."];let off=0,grp="";
+ HF.forEach(f=>{const{V,F}=tube(f.pts,r,S);
+  const key=FN[f.f][0]+"_ring_"+String(f.l+1).padStart(2,"0");if(key!==grp){grp=key;out.push("g "+key)}
+  V.forEach(v=>out.push("v "+v.map(x=>x.toFixed(6)).join(" ")));
+  F.forEach(q=>out.push("f "+q.map(i=>i+off+1).join(" ")));off+=V.length});
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out.join("\n")+"\n"],{type:"text/plain"}));a.download="hopf_fibres.obj";
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+hdefs.forEach(d=>$(d[0]).addEventListener("input",hupdate));["fI","fJ","fK"].forEach(i=>$(i).addEventListener("change",hupdate));
+$("hx").addEventListener("click",exportObj);
+const hfc=$("hf");hfc.style.touchAction="none";
+hfc.addEventListener("pointerdown",e=>{drag=[e.clientX,e.clientY];hfc.setPointerCapture(e.pointerId)});
+hfc.addEventListener("pointermove",e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*.01;pit=Math.max(-1.5,Math.min(1.5,pit+(e.clientY-drag[1])*.01));drag=[e.clientX,e.clientY];hdraw()});
+["pointerup","pointercancel"].forEach(t=>hfc.addEventListener(t,()=>{drag=null}));
+new ResizeObserver(hdraw).observe(hfc);
+hupdate();
+
 </script>
 </body>
 </html>
