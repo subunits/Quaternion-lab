@@ -109,7 +109,8 @@ details>.body{padding:4px 0 20px}
 <div class="out"><button class="primary" id="hx">Download OBJ</button>
 <dl class="stats"><div><dt>Fibres</dt><dd id="stF"></dd></div><div><dt>Quads</dt><dd id="stQ"></dd></div><div><dt>Size</dt><dd id="stS"></dd></div><div><dt>Groups</dt><dd id="stG"></dd></div></dl>
 <p class="note" id="sinfo" style="margin:6px 0 0"></p>
-<p class="status" id="hinfo" role="status" aria-live="polite"></p></div>
+<p class="status" id="hinfo" role="status" aria-live="polite"></p>
+<p class="status" id="pinfo" role="status" aria-live="polite"></p></div>
 </div>
 <div class="view"><canvas id="hf" tabindex="0" role="img" aria-label="Shaded 3D preview of the Hopf fibre tubes. Drag or use arrow keys to rotate, plus and minus to zoom."></canvas>
 <div class="bar"><label class="chip"><input type="checkbox" id="spin"><span>Turntable</span></label><label class="chip"><input type="checkbox" id="prb" checked><span>Probes</span></label><button id="hreset">Reset view</button></div>
@@ -269,118 +270,35 @@ function meshBuild(){
 }
 const VS="attribute vec3 p;attribute vec3 n;attribute vec3 c;uniform mat3 R;uniform float f,asp;varying vec3 vc,vn;void main(){vec3 q=R*p;vn=R*n;vc=c;float w=4.2+q.z;gl_Position=vec4(q.x*f/asp,q.y*f,w*1.0100503-0.201005,w);}";
 const FS="precision mediump float;uniform float al;varying vec3 vc,vn;void main(){vec3 n=normalize(vn);float d=abs(dot(n,normalize(vec3(.4,.55,.75))));float rim=pow(1.0-abs(n.z),2.0)*.15;gl_FragColor=vec4((vc*(.34+.66*d)+rim)*al,al);}";
-
 function glInit(){
- const cv=$("hf");
- const g=cv.getContext("webgl2",{antialias:true})||cv.getContext("webgl",{antialias:true})||cv.getContext("experimental-webgl",{antialias:true});
- if(!g)return;
- g.getExtension("OES_element_index_uint");
- gl=g;
- const mk=(t,src)=>{const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);return s};
- const pr=gl.createProgram();
- gl.attachShader(pr,mk(gl.VERTEX_SHADER,VS));
- gl.attachShader(pr,mk(gl.FRAGMENT_SHADER,FS));
- gl.linkProgram(pr);
- if(!gl.getProgramParameter(pr,gl.LINK_STATUS)){
-   console.error("Shader link failed:", gl.getProgramInfoLog(pr));
-   return;
- }
- gl.useProgram(pr);
- GU={
-  al:gl.getUniformLocation(pr,"al"),
-  R:gl.getUniformLocation(pr,"R"),
-  f:gl.getUniformLocation(pr,"f"),
-  asp:gl.getUniformLocation(pr,"asp")
- };
- GB={
-  pos:gl.createBuffer(),
-  nor:gl.createBuffer(),
-  col:gl.createBuffer(),
-  idx:gl.createBuffer(),
-  loc:{p:gl.getAttribLocation(pr,"p"),n:gl.getAttribLocation(pr,"n"),c:gl.getAttribLocation(pr,"c")}
- };
- GB2={
-  pos:gl.createBuffer(),
-  nor:gl.createBuffer(),
-  col:gl.createBuffer(),
-  idx:gl.createBuffer()
- };
- gl.enable(gl.DEPTH_TEST);
+ const cv=$("hf"),g=cv.getContext("webgl2",{antialias:true})||cv.getContext("webgl",{antialias:true});if(!g)return;
+ if(!(typeof WebGL2RenderingContext!=="undefined"&&g instanceof WebGL2RenderingContext)&&!g.getExtension("OES_element_index_uint"))return;
+ const mk=(t,src)=>{const s=g.createShader(t);g.shaderSource(s,src);g.compileShader(s);return s},pr=g.createProgram();
+ g.attachShader(pr,mk(g.VERTEX_SHADER,VS));g.attachShader(pr,mk(g.FRAGMENT_SHADER,FS));g.linkProgram(pr);
+ if(!g.getProgramParameter(pr,g.LINK_STATUS))return;
+ g.useProgram(pr);gl=g;GU={al:g.getUniformLocation(pr,"al"),R:g.getUniformLocation(pr,"R"),f:g.getUniformLocation(pr,"f"),asp:g.getUniformLocation(pr,"asp")};
+ GB={pos:g.createBuffer(),nor:g.createBuffer(),col:g.createBuffer(),idx:g.createBuffer(),loc:{p:g.getAttribLocation(pr,"p"),n:g.getAttribLocation(pr,"n"),c:g.getAttribLocation(pr,"c")}};
+ GB2={pos:g.createBuffer(),nor:g.createBuffer(),col:g.createBuffer(),idx:g.createBuffer()};g.enable(g.DEPTH_TEST);
 }
-
-function glUpload(){
- if(!gl||!GLM)return;
- [["pos","pos"],["nor","nor"],["col","col"]].forEach(([b,k])=>{
-  gl.bindBuffer(gl.ARRAY_BUFFER,GB[b]);
-  gl.bufferData(gl.ARRAY_BUFFER,GLM[k],gl.STATIC_DRAW);
- });
- gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,GB.idx);
- gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,GLM.idx,gl.STATIC_DRAW);
-}
-
-function probeUpload(){
- if(!gl||!PRB)return;
- [["pos","pos"],["nor","nor"],["col","col"]].forEach(([b,k])=>{
-  gl.bindBuffer(gl.ARRAY_BUFFER,GB2[b]);
-  gl.bufferData(gl.ARRAY_BUFFER,PRB[k],gl.STATIC_DRAW);
- });
- gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,GB2.idx);
- gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,PRB.idx,gl.STATIC_DRAW);
-}
-
+function glUpload(){if(!gl||!GLM)return;
+ [["pos","pos"],["nor","nor"],["col","col"]].forEach(([b,k])=>{gl.bindBuffer(gl.ARRAY_BUFFER,GB[b]);gl.bufferData(gl.ARRAY_BUFFER,GLM[k],gl.STATIC_DRAW)});
+ gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,GB.idx);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,GLM.idx,gl.STATIC_DRAW)}
 function hdraw(){
  const cv=$("hf"),dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;
  cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);
  const cy=Math.cos(yaw),sy=Math.sin(yaw),cx=Math.cos(pit),sx=Math.sin(pit);
- 
- if(gl){
-  gl.viewport(0,0,cv.width,cv.height);
-  gl.clearColor(0,0,0,0);
-  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
-  gl.uniformMatrix3fv(GU.R,false,[cy,sy*sx,-sy*cx,0,cx,sx,sy,-cy*sx,cy*cx]);
-  gl.uniform1f(GU.f,3.0*zoom);
-  gl.uniform1f(GU.asp,w/h);
-  
-  const set=(B,M)=>{
-   if(!M || !M.idx)return;
-   [["pos","p"],["nor","n"],["col","c"]].forEach(([k,a])=>{
-    gl.bindBuffer(gl.ARRAY_BUFFER,B[k]);
-    gl.enableVertexAttribArray(GB.loc[a]);
-    gl.vertexAttribPointer(GB.loc[a],3,gl.FLOAT,false,0,0);
-   });
-   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,B.idx);
-   gl.drawElements(gl.TRIANGLES,M.idx.length,gl.UNSIGNED_INT,0);
-  };
-  
-  if(GLM){
-   gl.uniform1f(GU.al,1);
-   set(GB,GLM);
-  }
-  if(PRB){
-   gl.disable(gl.DEPTH_TEST);
-   gl.enable(gl.BLEND);
-   gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
-   gl.uniform1f(GU.al,.5);
-   set(GB2,PRB);
-   gl.disable(gl.BLEND);
-   gl.enable(gl.DEPTH_TEST);
-   gl.uniform1f(GU.al,1);
-   set(GB2,PRB);
-  }
- }
+ if(gl){gl.viewport(0,0,cv.width,cv.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.uniformMatrix3fv(GU.R,false,[cy,sy*sx,-sy*cx,0,cx,sx,sy,-cy*sx,cy*cx]);gl.uniform1f(GU.f,3.0*zoom);gl.uniform1f(GU.asp,w/h);
+  const set=(B,M)=>{if(!M)return;[["pos","p"],["nor","n"],["col","c"]].forEach(([k,a])=>{gl.bindBuffer(gl.ARRAY_BUFFER,B[k]);gl.enableVertexAttribArray(GB.loc[a]);gl.vertexAttribPointer(GB.loc[a],3,gl.FLOAT,false,0,0)});gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,B.idx);gl.drawElements(gl.TRIANGLES,M.idx.length,gl.UNSIGNED_INT,0)};gl.uniform1f(GU.al,1);set(GB,GLM);gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.uniform1f(GU.al,.5);set(GB2,PRB);gl.disable(gl.BLEND);gl.enable(gl.DEPTH_TEST);gl.uniform1f(GU.al,1);set(GB2,PRB);return}
+ const g=cv.getContext("2d"),R=Math.min(w,h)*.4*zoom,dark=matchMedia("(prefers-color-scheme:dark)").matches;g.scale(dpr,dpr);g.lineWidth=1.6;g.lineJoin="round";
+ HF.forEach(f=>{g.strokeStyle=`hsl(${f.h} 70% ${dark?62:44}%)`;g.beginPath();
+  f.pts.forEach((p,i)=>{const x1=p[0]*cy+p[2]*sy,z1=-p[0]*sy+p[2]*cy,y1=p[1]*cx-z1*sx,z2=p[1]*sx+z1*cx,k=3/(3+z2),X=w/2+x1*R*k,Y=h/2-y1*R*k;i?g.lineTo(X,Y):g.moveTo(X,Y)});g.closePath();g.stroke()});
+ const P2=p=>{const x1=p[0]*cy+p[2]*sy,zz=-p[0]*sy+p[2]*cy,y1=p[1]*cx-zz*sx,z2=p[1]*sx+zz*cx,k=3/(3+z2);return[w/2+x1*R*k,h/2-y1*R*k,k]};
+ g.lineWidth=2.5;MB.forEach(([a,b,c])=>{const A=P2(a),B=P2(b);g.strokeStyle=rgbs(c);g.beginPath();g.moveTo(A[0],A[1]);g.lineTo(B[0],B[1]);g.stroke()});
+ MK.forEach(([q,r,c])=>{const A=P2(q);g.fillStyle=rgbs(c);g.strokeStyle=dark?"#fff":"#000";g.lineWidth=1;g.beginPath();g.arc(A[0],A[1],Math.max(3,r*R*A[2]*.85),0,6.2832);g.fill();g.stroke()});
 }
-
 function hupdate(){
- hdefs.forEach(([i,l,t,f])=>$(l).textContent=f(hv(i)));
- hopf();
- $("rrv").textContent=hv("rr").toFixed(2);
- $("sinfo").textContent="Fibre length factor s = "+HF.s.toFixed(3)+" (set in Checks, Monge-Ampère)";
- $("sqv").textContent="s = "+HF.s.toFixed(3)+" at r = "+hv("rr").toFixed(2)+": the scene scales each fibre circle about its centre by s.";
- const sim=meshBuild();
- glUpload();
- probes();
- probeUpload();
- hdraw();
+ hdefs.forEach(([i,l,t,f])=>$(l).textContent=f(hv(i)));hopf();$("rrv").textContent=hv("rr").toFixed(2);$("sinfo").textContent="Fibre length factor s = "+HF.s.toFixed(3)+" (set in Checks, Monge-Ampère)";$("sqv").textContent="s = "+HF.s.toFixed(3)+" at r = "+hv("rr").toFixed(2)+": the scene scales each Hopf fibre circle about its centre by s.";const sim=meshBuild();glUpload();probes();probeUpload();hdraw();
  const v=HF.length*hv("hM")*hv("hS"),kb=Math.round(v*58/1000),cur=[hv("hL"),hv("hN"),hv("hM"),hv("hS")].join();
  document.querySelectorAll("[data-p]").forEach(b=>b.setAttribute("aria-pressed",String(PRE[b.dataset.p].join()===cur)));
  const keys=new Set(HF.map(f=>FN[f.f][0]+f.l)),warn=[];
@@ -389,7 +307,7 @@ function hupdate(){
  if(HF.cull)warn.push(HF.cull+" fibres dropped near the projection point. Adjust outer reach or 4D roll to change which ones.");
  if(kb>50000)warn.push("Very large file. Lower the density before exporting.");
  if(sim)warn.push("Preview simplified: the scene shows "+(GLM.idx.length/6).toLocaleString()+" of "+v.toLocaleString()+" quads. The export is full resolution.");
- if(!gl)warn.push("WebGL failed to initialize.");
+ if(!gl)warn.push("No WebGL, so the preview is a flat line drawing without shading or tube thickness.");
  $("hinfo").innerHTML=warn.map(w=>"<span>"+w+"</span>").join("");$("hx").disabled=!HF.length;
 }
 function buildObj(emit){
@@ -438,17 +356,19 @@ function sph(c,r,col,P){const nu=10,nv=6,b0=P.pos.length/3;
 function cyl(a,b,r,col,P){const d=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],L=Math.hypot(...d);if(L<1e-6)return;const T=d.map(v=>v/L),w=Math.abs(T[1])>.9?[1,0,0]:[0,1,0],dt=w[0]*T[0]+w[1]*T[1]+w[2]*T[2],n0=[0,1,2].map(i=>w[i]-dt*T[i]),nl=Math.hypot(...n0),n=n0.map(x=>x/nl),m=[T[1]*n[2]-T[2]*n[1],T[2]*n[0]-T[0]*n[2],T[0]*n[1]-T[1]*n[0]],S=8,b0=P.pos.length/3;
  [a,b].forEach(e=>{for(let k=0;k<S;k++){const an=2*Math.PI*k/S,c=Math.cos(an),s=Math.sin(an),nn=[0,1,2].map(i=>c*n[i]+s*m[i]);P.pos.push(e[0]+r*nn[0],e[1]+r*nn[1],e[2]+r*nn[2]);P.nor.push(nn[0],nn[1],nn[2]);P.col.push(col[0],col[1],col[2])}});
  for(let k=0;k<S;k++){const k2=(k+1)%S;P.idx.push(b0+k,b0+k2,b0+S+k2,b0+k,b0+S+k2,b0+S+k)}}
-function S(p,r,c,P){sph(p,r,c,P);MK.push([p,r,c])}
-function C(a,b,r,c,P){cyl(a,b,r,c,P);MB.push([a,b,c])}
-function probes(){PRB=null;MK=[];MB=[];if(!$("prb").checked)return;
+function pSph(p,r,c,P){sph(p,r,c,P);MK.push([p,r,c])}
+function pBar(a,b,r,c,P){cyl(a,b,r,c,P);MB.push([a,b,c])}
+function probes(){PRB=null;MK=[];MB=[];let hid=0;if(!$("prb").checked){$("pinfo").innerHTML="";return}
  const psi=hv("hP")*Math.PI/180,cp=Math.cos(psi),sp=Math.sin(psi),tf=HF.tf||{ctr:[0,0,0],sc:1},P={pos:[],nor:[],col:[],idx:[]},unit=q=>{const n=Math.hypot(...q);return n>1e-9?q.map(v=>v/n):null};
- const pm=q=>{q=unit(q);if(!q)return null;const a=q[0]*cp-q[3]*sp,d=q[0]*sp+q[3]*cp,den=1-d;if(den<.1)return null;return[a/den,q[1]/den,q[2]/den].map((v,i)=>(v-tf.ctr[i])*tf.sc)};
+ const pm=q=>{q=unit(q);if(!q)return null;const a=q[0]*cp-q[3]*sp,d=q[0]*sp+q[3]*cp,den=1-d;if(den<.1){hid++;return null}return[a/den,q[1]/den,q[2]/den].map((v,i)=>(v-tf.ctr[i])*tf.sc)};
  const g=[[0,0,0,0],[0,0,0,0]];document.querySelectorAll("[data-q]").forEach(e=>{g[+e.dataset.q][+e.dataset.c]=parseFloat(e.value)||0});
  const A=unit(g[0])||[1,0,0,0],B=unit(g[1])||[1,0,0,0];
- [[A,PC.A],[B,PC.B],[H(A,B),PC.AB],[H(B,A),PC.BA]].forEach(([q,c])=>{const p=pm(q);if(p)S(p,.075,c,P)});
- if(EQ){const p=pm(EQ.U);if(p)S(p,.06,PC.U,P);
-  EQ.pairs.forEach((e,i)=>{if(!e)return;const p1=pm(e.r),p2=pm(e.l);if(p1)S(p1,.075,PN[i],P);if(p2)S(p2,.04,PN[i].map(v=>Math.min(1,v*.55+.45)),P);if(p1&&p2)C(p1,p2,.014,PN[i],P)})}
+ [[A,PC.A],[B,PC.B],[H(A,B),PC.AB],[H(B,A),PC.BA]].forEach(([q,c])=>{const p=pm(q);if(p)pSph(p,.075,c,P)});
+ if(EQ){const p=pm(EQ.U);if(p)pSph(p,.06,PC.U,P);
+  EQ.pairs.forEach((e,i)=>{if(!e)return;const p1=pm(e.r),p2=pm(e.l);if(p1)pSph(p1,.075,PN[i],P);if(p2)pSph(p2,.04,PN[i].map(v=>Math.min(1,v*.55+.45)),P);if(p1&&p2)pBar(p1,p2,.014,PN[i],P)})}
+ $("pinfo").innerHTML=hid?`<span>${hid} probe marker${hid>1?"s are":" is"} at the projection point and cannot be drawn. Try a larger 4D roll (it can take 45° or more) to bring ${hid>1?"them":"it"} into view.</span>`:"";
  PRB={pos:new Float32Array(P.pos),nor:new Float32Array(P.nor),col:new Float32Array(P.col),idx:new Uint32Array(P.idx)}}
+function probeUpload(){if(!gl||!PRB)return;[["pos","pos"],["nor","nor"],["col","col"]].forEach(([b,k])=>{gl.bindBuffer(gl.ARRAY_BUFFER,GB2[b]);gl.bufferData(gl.ARRAY_BUFFER,PRB[k],gl.STATIC_DRAW)});gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,GB2.idx);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,PRB.idx,gl.STATIC_DRAW)}
 function refreshProbes(){probes();probeUpload();hdraw()}
 $("prb").addEventListener("change",refreshProbes);
 glInit();syncRanges();hupdate();HREADY=true;
