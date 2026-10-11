@@ -150,14 +150,18 @@ function drawAlgebra(){
  const q=[[0,0,0,0],[0,0,0,0]];
  document.querySelectorAll("[data-q]").forEach(e=>q[+e.dataset.q][+e.dataset.c]=parseFloat(e.value)||0);
  const ab=H(q[0],q[1]), ba=H(q[1],q[0]), d=ab.map((v,i)=>v-ba[i]);
- $("qout").innerHTML=`<div><b>a⊗b</b><span>${fq(ab)}</span></div><div><b>b⊗a</b><span>${fq(ba)}</span></div><div><b>difference</b><span>${fq(d)}</span></div><div><b>|a⊗b| vs |a||b|</b><span>${nrm(ab).toFixed(6)} vs ${(nrm(q[0])*nrm(q[1])).toFixed(6)}</span></div>`;
+ const na=nrm(q[0]), nb=nrm(q[1]);
+ const commute=d.every(v=>Math.abs(v)<1e-12);
+ const unitA=Math.abs(na-1)<1e-4, unitB=Math.abs(nb-1)<1e-4;
+ $("qout").innerHTML=`<div><b>a⊗b</b><span>${fq(ab)}</span></div><div><b>b⊗a</b><span>${fq(ba)}</span></div><div><b>difference</b><span>${fq(d)}</span></div><div><b>|a⊗b| vs |a||b|</b><span>${nrm(ab).toFixed(6)} vs ${(na*nb).toFixed(6)}</span></div>`;
+ 
+ // Fully wired live check affordance for d1
+ $("r1").innerHTML=`<span class="${unitA&&unitB?"ok":"bad"}">|a|=|b|=1 ${unitA&&unitB?"✓":"✗"}</span> <span class="${commute?"":"bad"}">${commute?"commutes":"non-commutative ✓"}</span>`;
 }
 document.querySelectorAll("[data-q]").forEach(e=>e.addEventListener("input",()=>{drawAlgebra();if(HREADY)refreshProbes()}));
 const I=[0,1,0,0],J=[0,0,1,0],K=[0,0,0,1];
 const rel=[["i⊗i",H(I,I)],["j⊗j",H(J,J)],["k⊗k",H(K,K)],["i⊗j⊗k",H(H(I,J),K)],["i⊗j",H(I,J)],["j⊗k",H(J,K)],["k⊗i",H(K,I)],["j⊗i",H(J,I)]];
 $("rel").innerHTML=rel.map(([n,v])=>`<div><b>${n}</b><span>${fq(v)}</span></div>`).join("");
-{const ap=(x,y)=>x.every((v,i)=>Math.abs(v-y[i])<1e-12),m1=[-1,0,0,0],ok=ap(H(I,I),m1)&&ap(H(J,J),m1)&&ap(H(K,K),m1)&&ap(H(H(I,J),K),m1)&&ap(H(I,J),K)&&ap(H(J,K),I)&&ap(H(K,I),J);
-$("r1").innerHTML=`<span class="${ok?"ok":"bad"}">i² = j² = k² = ijk = −1 ${ok?"✓":"✗"}</span>`}
 drawAlgebra();
 
 /* ---------- Equivariance ---------- */
@@ -269,7 +273,7 @@ function meshBuild(){
  return ps!==S0||step>1;
 }
 const VS="attribute vec3 p;attribute vec3 n;attribute vec3 c;uniform mat3 R;uniform float f,asp;varying vec3 vc,vn;void main(){vec3 q=R*p;vn=R*n;vc=c;float w=4.2+q.z;gl_Position=vec4(q.x*f/asp,q.y*f,w*1.0100503-0.201005,w);}";
-const FS="precision mediump float;uniform float al;varying vec3 vc,vn;void main(){vec3 n=normalize(vn);float d=abs(dot(n,normalize(vec3(.4,.55,.75))));float rim=pow(1.0-abs(n.z),2.0)*.15;gl_FragColor=vec4((vc*(.34+.66*d)+rim)*al,al);}";
+const FS="precision mediump float;uniform float al;varying vec3 vc,vn;void main(){vec3 n=normalize(vn);float d=abs(dot(n,normalize(vec3(.4,.55,.75))));float rim=pow(1.0-abs(n.z),2.0)*.15;gl_FragColor=vec4((vc*(.34+.66*d)+rim)*al,al);app;}";
 function glInit(){
  const cv=$("hf"),g=cv.getContext("webgl2",{antialias:true})||cv.getContext("webgl",{antialias:true});if(!g)return;
  if(!(typeof WebGL2RenderingContext!=="undefined"&&g instanceof WebGL2RenderingContext)&&!g.getExtension("OES_element_index_uint"))return;
@@ -368,7 +372,7 @@ function probes(){PRB=null;MK=[];MB=[];let hid=0;if(!$("prb").checked){$("pinfo"
   EQ.pairs.forEach((e,i)=>{if(!e)return;const p1=pm(e.r),p2=pm(e.l);if(p1)pSph(p1,.075,PN[i],P);if(p2)pSph(p2,.04,PN[i].map(v=>Math.min(1,v*.55+.45)),P);if(p1&&p2)pBar(p1,p2,.014,PN[i],P)})}
  $("pinfo").innerHTML=hid?`<span>${hid} probe marker${hid>1?"s are":" is"} at the projection point and cannot be drawn. Try a larger 4D roll (it can take 45° or more) to bring ${hid>1?"them":"it"} into view.</span>`:"";
  PRB={pos:new Float32Array(P.pos),nor:new Float32Array(P.nor),col:new Float32Array(P.col),idx:new Uint32Array(P.idx)}}
-function probeUpload(){if(!gl||!PRB)return;[["pos","pos"],["nor","nor"],["col","col"]].forEach(([b,k])=>{gl.bindBuffer(gl.ARRAY_BUFFER,GB2[b]);gl.bufferData(gl.ARRAY_BUFFER,PRB[k],gl.STATIC_DRAW)});gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,GB2.idx);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,PRB.idx,gl.STATIC_DRAW)}
+function probeUpload(){if(!gl||!PRB)return;[["pos","pos"],["nor","nor"],["col","col"]].forEach(([b,k])=>{gl.bindBuffer(gl.ARRAY_BUFFER,GB2[b]);gl.bufferData(gl.ARRAY_BUFFER,PRB[k],gl.STATIC_DRAW)});gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,GB2.idx);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,GB2.idx,gl.STATIC_DRAW)}
 function refreshProbes(){probes();probeUpload();hdraw()}
 $("prb").addEventListener("change",refreshProbes);
 glInit();syncRanges();hupdate();HREADY=true;
